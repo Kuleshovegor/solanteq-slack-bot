@@ -1,8 +1,6 @@
 import handlers.commands.DigestCommandHandler
 import handlers.commands.HelloCommandHandler
 import com.slack.api.bolt.App
-import com.slack.api.bolt.AppConfig
-import com.slack.api.bolt.AppConfig.AppConfigBuilder
 import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.Conversation
 import com.slack.api.model.event.MessageEvent
@@ -24,12 +22,11 @@ fun main() {
 
     val di = DI {
         bindSingleton("database") {
-            KMongo.createClient().getDatabase("CompassTest")
+            KMongo.createClient().getDatabase("<database name>")
         }
         bindSingleton { UserRepository(instance("database")) }
         bindSingleton { SlackMessageRepository(instance("database")) }
         bindSingleton { MessageService(instance(), instance()) }
-
     }
 
     val userDescriptionToChannels = mutableMapOf<UserDescription, MutableList<String>>()

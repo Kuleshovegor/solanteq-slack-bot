@@ -12,7 +12,6 @@ class HelloCommandHandler(private val botConfig: BotConfig) : SlashCommandHandle
     }
 
     override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        println(context!!.requestUserId)
         return DirectMessageHandler.sendResponseInDirect(HELLO_TEXT, req, context, botConfig)
     }
 }
