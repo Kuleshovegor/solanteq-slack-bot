@@ -1,7 +1,6 @@
 package handlers.commands
 
 import com.slack.api.bolt.context.builtin.SlashCommandContext
-import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import dsl.BotConfig
 
@@ -10,19 +9,16 @@ class DirectMessageHandler {
         private const val DEFAULT_ERROR_RESPONSE = "Произошла ошибка :pensive:"
         private const val DEFAULT_OK_RESPONSE = "Вам отправлено личное сообщение"
 
-        fun sendResponseInDirect(
+        fun sendMessageInDirect(
             text: String,
-            req: SlashCommandRequest?,
-            context: SlashCommandContext?,
+            userId: String,
+            context: SlashCommandContext,
             botConfig: BotConfig
         ): Response {
-            if (req == null || context == null) {
-                return Response.error(500)
-            }
 
             val conversationsOpenResponse = context.client().conversationsOpen { r ->
                 r.token(botConfig.slackBotToken)
-                    .users(listOf(context.requestUserId))
+                    .users(listOf(userId))
             }
 
             if (!conversationsOpenResponse.isOk && !conversationsOpenResponse.isAlreadyOpen) {
@@ -34,7 +30,7 @@ class DirectMessageHandler {
             val chatPostMessageResponse = context.client()
                 .chatPostMessage { r ->
                     r.token(botConfig.slackBotToken)
-                        .channel(context.requestUserId)
+                        .channel(userId)
                         .text(text)
                 }
 

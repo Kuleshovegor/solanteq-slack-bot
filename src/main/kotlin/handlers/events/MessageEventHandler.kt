@@ -4,29 +4,28 @@ import com.slack.api.app_backend.events.payload.EventsApiPayload
 import com.slack.api.bolt.context.builtin.EventContext
 import com.slack.api.bolt.handler.BoltEventHandler
 import com.slack.api.bolt.response.Response
-import com.slack.api.model.Conversation
 import com.slack.api.model.event.MessageEvent
 import dsl.BotConfig
+import org.kodein.di.DI
+import org.kodein.di.instance
 import service.MessageService
 
 
-class MessageEventHandler(
-    private val botConfig: BotConfig,
-    private val messageService: MessageService,
-    private val channelsNameToConversation: Map<String, Conversation>,
-    private val userNameToId: Map<String, String>
-) : BoltEventHandler<MessageEvent> {
+class MessageEventHandler(di: DI) : BoltEventHandler<MessageEvent> {
+    private val botConfig: BotConfig by di.instance()
+    private val messageService: MessageService by di.instance()
+
     override fun apply(req: EventsApiPayload<MessageEvent>?, context: EventContext?): Response {
         if (req == null || context == null) {
             return Response.error(500)
         }
 
-        if (channelsNameToConversation.values.map { it.id }.contains(req.event.channel)) {
+        if (botConfig.channelsNameToConversation.values.map { it.id }.contains(req.event.channel)) {
             val channelDescription =
-                botConfig.channels.values.find { channelsNameToConversation[it.name]!!.id == req.event.channel }
+                botConfig.channels.values.find { botConfig.channelsNameToConversation[it.name]!!.id == req.event.channel }
             if (req.event.threadTs != null) {
-                if (userNameToId.containsValue(req.event.user) &&
-                    channelDescription!!.users.any { userNameToId[it.name] == req.event.user }
+                if (botConfig.userNameToId.containsValue(req.event.user) &&
+                    channelDescription!!.users.any { botConfig.userNameToId[it.name] == req.event.user }
                 ) {
                     messageService.deleteMessage(req.event.threadTs)
                 }

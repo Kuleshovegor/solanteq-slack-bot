@@ -4,10 +4,14 @@ import com.slack.api.bolt.App
 import com.slack.api.bolt.Initializer
 import dsl.BotConfig
 import models.UserChannels
+import org.kodein.di.DI
 import org.kodein.di.instance
 import repository.UserRepository
 
-/*class MyInitializer(private val botConfig: BotConfig, private val userRepository: UserRepository) : Initializer {
+class MyInitializer(di: DI) : Initializer {
+    private val botConfig: BotConfig by di.instance()
+    private val userRepository: UserRepository by di.instance()
+
     override fun accept(initApp: App?) {
         check(initApp != null)
 
@@ -17,11 +21,11 @@ import repository.UserRepository
         check(usersListResponse.isOk) { "Init error: bad response: ${usersListResponse.error}" }
 
         val usersList = usersListResponse.members
-        val userNames = userDescriptionToChannels.keys.map { it.name }.toSet()
+        val userNames = botConfig.userDescriptionToChannels.keys.map { it.name }.toSet()
 
         usersList.forEach {
             if (userNames.contains(it.name)) {
-                userNameToId[it.name] = it.id
+                botConfig.userNameToId[it.name] = it.id
             }
         }
 
@@ -37,14 +41,14 @@ import repository.UserRepository
 
         channelList.forEach {
             if (channelNames.contains(it.name)) {
-                channelsNameToConversation[it.name] = it
+                botConfig.channelsNameToConversation[it.name] = it
             }
         }
 
-        userDescriptionToChannels.entries.forEach { (key, value) ->
-            val channelsId = value.map { channelsNameToConversation[it]!! }
-            userRepository.addUser(UserChannels(userNameToId[key.name]!!, channelsId))
+        botConfig.userDescriptionToChannels.entries.forEach { (key, value) ->
+            val channelsId = value.map { botConfig.channelsNameToConversation[it]!! }
+            userRepository.addUser(UserChannels(botConfig.userNameToId[key.name]!!, channelsId))
         }
     }
 
-}*/
+}
