@@ -3,14 +3,14 @@ package initializers
 import com.slack.api.bolt.App
 import com.slack.api.bolt.Initializer
 import dsl.BotConfig
-import models.UserChannels
+import models.SupportChannel
 import org.kodein.di.DI
 import org.kodein.di.instance
-import repository.UserRepository
+import repository.SupportChannelRepository
 
 class MyInitializer(di: DI) : Initializer {
     private val botConfig: BotConfig by di.instance()
-    private val userRepository: UserRepository by di.instance()
+    private val supportChannelRepository: SupportChannelRepository by di.instance()
 
     override fun accept(initApp: App?) {
         check(initApp != null)
@@ -45,9 +45,15 @@ class MyInitializer(di: DI) : Initializer {
             }
         }
 
-        botConfig.userDescriptionToChannels.entries.forEach { (key, value) ->
-            val channelsId = value.map { botConfig.channelsNameToConversation[it]!! }
-            userRepository.addUser(UserChannels(botConfig.userNameToId[key.name]!!, channelsId))
+        botConfig.channels.values.forEach {
+            supportChannelRepository.addSupportChannel(
+                SupportChannel(
+                    botConfig.teamId,
+                    botConfig.channelsNameToConversation[it.name]!!.id,
+                    it.name,
+                    it.users.map { username -> botConfig.userNameToId[username.name]!! }.toSet()
+                )
+            )
         }
     }
 
