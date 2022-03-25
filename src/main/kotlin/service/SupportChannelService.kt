@@ -20,6 +20,10 @@ class SupportChannelService(di: DI) {
         supportChannelRepository.addSupportChannel(supportChannel)
     }
 
+    fun getAllChannels(teamId: String): List<SupportChannel> {
+        return supportChannelRepository.getSupportChannelByTeamId(teamId)
+    }
+
     fun deleteSupportChannel(supportChannelId: String) {
         supportChannelRepository.delete(supportChannelId)
     }

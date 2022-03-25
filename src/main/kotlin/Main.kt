@@ -10,6 +10,7 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.litote.kmongo.KMongo
+import repository.ScheduleTimeRepository
 import repository.SupportChannelRepository
 import repository.UnansweredMessageRepository
 import service.DigestService
@@ -31,12 +32,13 @@ fun main() {
         bindSingleton { UnansweredMessageService(instance()) }
         bindSingleton { DigestService(di) }
         bindSingleton { SupportChannelService(di) }
+        bindSingleton { ScheduleTimeRepository(instance("database")) }
         bindSingleton("slackClient") { app.client() }
     }
 
     app.initializer("myInitializer", MyInitializer(di))
 
-    val everyWeekTaskService = EveryWeekTaskService {
+    val everyWeekTaskService = EveryWeekTaskService(di) {
         val digestService: DigestService by di.instance()
 
         digestService.sendAllDigest(BOT_CONFIG.teamId)
@@ -46,7 +48,9 @@ fun main() {
     app.command("/digest", DigestCommandHandler(di))
     app.command("/addsupportchannel", AddSupportChannel(di))
     app.command("/deletesupportchannel", DeleteSupportChannel(di))
+    app.command("/showchannels", ShowAllChannels(di))
     app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
+    app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
 

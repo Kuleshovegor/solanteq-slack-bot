@@ -5,7 +5,6 @@ import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import org.kodein.di.DI
-import org.kodein.di.instance
 import service.EveryWeekTaskService
 import java.util.Calendar
 
@@ -45,7 +44,7 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
 
         val (dayOfWeek, time) = get(req.payload.text) ?: return context.ack("неверный запрос")
 
-        everyWeekTaskService.addNewTime(dayOfWeek, time.first, time.second)
+        everyWeekTaskService.addAndSaveNewTime(req.payload.teamId, dayOfWeek, time.first, time.second)
 
         return context.ack("время добавлено")
     }

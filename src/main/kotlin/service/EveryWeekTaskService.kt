@@ -1,10 +1,15 @@
 package service
 
+import dsl.BotConfig
+import models.ScheduleTime
+import org.kodein.di.DI
+import org.kodein.di.instance
+import repository.ScheduleTimeRepository
 import java.time.ZoneId
 import java.util.*
 import kotlin.concurrent.schedule
 
-class EveryWeekTaskService(private val task: () -> Unit) {
+class EveryWeekTaskService(di: DI, private val task: () -> Unit) {
     companion object {
         private val DEFAULT_TIME_ZONE = TimeZone.getTimeZone(ZoneId.of("Europe/Moscow"))
         private val DEFAULT_LOCAL = Locale("ru")
@@ -17,7 +22,16 @@ class EveryWeekTaskService(private val task: () -> Unit) {
         }
     }
 
-    private val timer: Timer = Timer("scheduler",false)
+    private val timer: Timer = Timer("scheduler",true)
+    private val scheduleTimeRepository: ScheduleTimeRepository by di.instance()
+    private val botConfig: BotConfig by di.instance()
+
+    init {
+        val schedules = scheduleTimeRepository.getByTeamId(botConfig.teamId)
+        schedules.forEach {
+            addNewTime(it.dayOfWeek, it.hours, it.minutes)
+        }
+    }
 
     fun addNewTime(dayOfWeek: Int, hour: Int, minute: Int) {
         val currentDate = Calendar.getInstance(DEFAULT_TIME_ZONE, DEFAULT_LOCAL)
@@ -37,7 +51,17 @@ class EveryWeekTaskService(private val task: () -> Unit) {
         }
 
         timer.schedule(firstDate.time, WEEK_PERIOD) {
-            task()
+
         }
+    }
+
+    fun getAllTimes(teamId: String): List<ScheduleTime> {
+        return scheduleTimeRepository.getByTeamId(teamId)
+    }
+
+    fun addAndSaveNewTime(teamId: String, dayOfWeek: Int, hour: Int, minute: Int) {
+        addNewTime(dayOfWeek, hour, minute)
+
+        scheduleTimeRepository.save(ScheduleTime(teamId, dayOfWeek, hour, minute))
     }
 }

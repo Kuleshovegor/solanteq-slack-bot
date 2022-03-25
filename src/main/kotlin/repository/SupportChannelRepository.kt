@@ -22,6 +22,10 @@ class SupportChannelRepository(database: MongoDatabase) {
         collection.deleteOne(SupportChannel::id eq supportChannelId)
     }
 
+    fun getSupportChannelByTeamId(teamId: String): List<SupportChannel> {
+        return collection.find(SupportChannel::teamId eq teamId).toList()
+    }
+
     fun getSupportChannelById(slackId: String): SupportChannel? {
         return collection.findOne { SupportChannel::id eq slackId }
     }
