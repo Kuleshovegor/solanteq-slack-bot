@@ -1,11 +1,8 @@
-import handlers.commands.DigestCommandHandler
-import handlers.commands.HelloCommandHandler
 import com.slack.api.bolt.App
 import com.slack.api.bolt.WebEndpoint
 import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.event.MessageEvent
-import handlers.commands.AddSupportChannel
-import handlers.commands.DeleteSupportChannel
+import handlers.commands.*
 import handlers.events.MessageEventHandler
 import handlers.youTrack.SLAHandler
 import initializers.MyInitializer
@@ -16,6 +13,7 @@ import org.litote.kmongo.KMongo
 import repository.SupportChannelRepository
 import repository.UnansweredMessageRepository
 import service.DigestService
+import service.EveryWeekTaskService
 import service.SupportChannelService
 import service.UnansweredMessageService
 
@@ -38,15 +36,23 @@ fun main() {
 
     app.initializer("myInitializer", MyInitializer(di))
 
+    val everyWeekTaskService = EveryWeekTaskService {
+        val digestService: DigestService by di.instance()
+
+        digestService.sendAllDigest(BOT_CONFIG.teamId)
+    }
+
     app.command("/hello", HelloCommandHandler(di))
     app.command("/digest", DigestCommandHandler(di))
     app.command("/addsupportchannel", AddSupportChannel(di))
     app.command("/deletesupportchannel", DeleteSupportChannel(di))
+    app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
 
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(app.client, BOT_CONFIG))
 
     val server = SlackAppServer(app)
+
     server.start()
 }
