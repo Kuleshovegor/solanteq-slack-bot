@@ -4,6 +4,7 @@ import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.event.MessageEvent
 import handlers.commands.*
 import handlers.events.MessageEventHandler
+import handlers.youTrack.NewTaskHandler
 import handlers.youTrack.SLAHandler
 import initializers.MyInitializer
 import org.kodein.di.DI
@@ -13,10 +14,7 @@ import org.litote.kmongo.KMongo
 import repository.ScheduleTimeRepository
 import repository.SupportChannelRepository
 import repository.UnansweredMessageRepository
-import service.DigestService
-import service.EveryWeekTaskService
-import service.SupportChannelService
-import service.UnansweredMessageService
+import service.*
 
 
 fun main() {
@@ -31,6 +29,8 @@ fun main() {
         bindSingleton { SupportChannelRepository(instance("database")) }
         bindSingleton { UnansweredMessageService(instance()) }
         bindSingleton { DigestService(di) }
+        bindSingleton { MessageService(di) }
+        bindSingleton { UserService(di) }
         bindSingleton { SupportChannelService(di) }
         bindSingleton { ScheduleTimeRepository(instance("database")) }
         bindSingleton("slackClient") { app.client() }
@@ -55,6 +55,7 @@ fun main() {
     app.event(MessageEvent::class.java, MessageEventHandler(di))
 
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(app.client, BOT_CONFIG))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
 
     val server = SlackAppServer(app)
 
