@@ -47,12 +47,18 @@ class UserService(di: DI) {
         }.user.id
     }
 
-    fun getUserInfoByName(name: String): User {
-        val resp = slackClient.usersInfo { r -> r.token(botConfig.slackBotToken).user(getUserIdByName(name)) }
+    fun getUserEmail(userId: String): String {
+        return slackClient.usersInfo { r ->
+            r.token(botConfig.slackBotToken)
+                .user(userId)
+        }.user.profile.email
+    }
 
-        check(resp.isOk)
-
-        return resp.user
+    fun getUserByEmail(email: String): User {
+        return slackClient.usersLookupByEmail {r ->
+            r.email(email)
+                .token(botConfig.slackBotToken)
+        }.user
     }
 
     fun getName(userId: String): String {

@@ -8,10 +8,13 @@ import org.kodein.di.DI
 import org.kodein.di.instance
 import repository.SupportChannelRepository
 import repository.UnansweredMessageRepository
+import repository.YouTrackCommentRepository
 
 class DigestService(di: DI) {
-    private val supportChannelRepository by di.instance<SupportChannelRepository>()
-    private val unansweredMessageRepository by di.instance<UnansweredMessageRepository>()
+    private val supportChannelRepository: SupportChannelRepository by di.instance()
+    private val unansweredMessageRepository: UnansweredMessageRepository by di.instance()
+    private val youTrackCommentRepository: YouTrackCommentRepository by di.instance()
+    private val userService: UserService by di.instance()
     private val slackClient: MethodsClient by di.instance("slackClient")
     private val botConfig by di.instance<BotConfig>()
 
@@ -39,6 +42,16 @@ class DigestService(di: DI) {
 
             digest.append("В канале ${channel.name}:").append(System.lineSeparator())
             digest.append(links).append(System.lineSeparator())
+        }
+
+        val user = userService.getUserInfoById(userId)
+        val youTrackComments = youTrackCommentRepository.getByEmail(user.profile.email.lowercase())
+        digest.append("У вас неотвеченные сообщения в чатах YouTrack.")
+            .append(System.lineSeparator())
+            .append(System.lineSeparator())
+
+        youTrackComments.forEach {
+            digest.append(it.link).append(System.lineSeparator())
         }
 
         slackClient.conversationsOpen { r ->
