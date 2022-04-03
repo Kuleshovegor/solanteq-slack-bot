@@ -6,12 +6,16 @@ import com.slack.api.bolt.context.WebEndpointContext
 import com.slack.api.bolt.handler.WebEndpointHandler
 import com.slack.api.bolt.request.WebEndpointRequest
 import com.slack.api.bolt.response.Response
-import models.YouTrackComment
+import models.YouTrackMention
 import org.kodein.di.DI
 import org.kodein.di.instance
+import service.MessageService
+import service.UserService
 import service.YouTrackCommentService
 
-class NewYouTrackComment(di: DI): WebEndpointHandler {
+class NewYouTrackMentionComment(di: DI): WebEndpointHandler {
+    private val userService: UserService by di.instance()
+    private val messageService: MessageService by di.instance()
     private val youTrackCommentService: YouTrackCommentService by di.instance()
 
     override fun apply(request: WebEndpointRequest?, context: WebEndpointContext?): Response {
@@ -19,9 +23,11 @@ class NewYouTrackComment(di: DI): WebEndpointHandler {
             return Response.error(500)
         }
 
-        val comment = jacksonObjectMapper().readValue<YouTrackComment>(request.requestBodyAsString)
+        val mention = jacksonObjectMapper().readValue<YouTrackMention>(request.requestBodyAsString)
 
-        youTrackCommentService.deleteMentions(comment)
+        youTrackCommentService.save(mention)
+
+        messageService.sendMessage(userService.getUserIdByEmail(mention.userEmail), mention.toString())
 
         return Response.ok()
     }

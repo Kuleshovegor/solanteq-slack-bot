@@ -4,8 +4,9 @@ import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.event.MessageEvent
 import handlers.commands.*
 import handlers.events.MessageEventHandler
-import handlers.youTrack.NewYouTrackComment
+import handlers.youTrack.NewYouTrackMentionComment
 import handlers.youTrack.NewTaskHandler
+import handlers.youTrack.NewYouTrackComment
 import handlers.youTrack.SLAHandler
 import initializers.MyInitializer
 import org.kodein.di.DI
@@ -60,6 +61,7 @@ fun main() {
 
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(app.client, BOT_CONFIG))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/mention", NewYouTrackMentionComment(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/comment", NewYouTrackComment(di))
 
     val server = SlackAppServer(app)
