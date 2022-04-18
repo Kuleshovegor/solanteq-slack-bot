@@ -4,9 +4,11 @@ import models.SupportChannel
 import org.kodein.di.DI
 import org.kodein.di.instance
 import repository.SupportChannelRepository
+import repository.UnansweredMessageRepository
 
 class SupportChannelService(di: DI) {
     private val supportChannelRepository: SupportChannelRepository by di.instance()
+    private val unansweredMessageRepository: UnansweredMessageRepository by di.instance()
 
     fun isSupportChannel(channelId: String): Boolean {
         return supportChannelRepository.getSupportChannelById(channelId) != null
@@ -25,6 +27,7 @@ class SupportChannelService(di: DI) {
     }
 
     fun deleteSupportChannel(supportChannelId: String) {
+        unansweredMessageRepository.deleteMessageByChannel(supportChannelId)
         supportChannelRepository.delete(supportChannelId)
     }
 

@@ -11,7 +11,7 @@ import org.kodein.di.DI
 import org.kodein.di.instance
 import service.YouTrackCommentService
 
-class NewYouTrackComment(di: DI): WebEndpointHandler {
+class NewYouTrackComment(di: DI) : WebEndpointHandler {
     private val youTrackCommentService: YouTrackCommentService by di.instance()
 
     override fun apply(request: WebEndpointRequest?, context: WebEndpointContext?): Response {

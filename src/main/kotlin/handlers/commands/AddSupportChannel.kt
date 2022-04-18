@@ -6,7 +6,6 @@ import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import com.slack.api.model.Conversation
 import com.slack.api.model.User
-import dsl.BotConfig
 import models.SupportChannel
 import org.kodein.di.DI
 import org.kodein.di.instance
@@ -16,16 +15,17 @@ import java.util.Scanner
 
 class AddSupportChannel(di: DI) : SlashCommandHandler {
     private val supportChannelService: SupportChannelService by di.instance()
-    private val botConfig: BotConfig by di.instance()
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
+    private val teamId: String by di.instance("TEAM_ID")
 
-    fun getConversation(tag: String, context: SlashCommandContext): Conversation? {
+    private fun getConversation(tag: String, context: SlashCommandContext): Conversation? {
         if (tag.isEmpty() || tag[0] != '#') {
             return null
         }
 
         val conversations = context.client().conversationsList { r ->
-            r.teamId(botConfig.teamId)
-                .token(botConfig.slackBotToken)
+            r.teamId(teamId)
+                .token(token)
                 .excludeArchived(false)
         }
 
@@ -37,14 +37,14 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         return conversations.channels.find { it.name == tag.slice(1 until tag.length) }
     }
 
-    fun getUser(tag: String, context: SlashCommandContext): User? {
+    private fun getUser(tag: String, context: SlashCommandContext): User? {
         if (tag.isEmpty() || tag[0] != '@') {
             return null
         }
 
         val users = context.client().usersList { r ->
-            r.teamId(botConfig.teamId)
-                .token(botConfig.slackBotToken)
+            r.teamId(teamId)
+                .token(token)
         }
 
         if (!users.isOk) {
@@ -59,7 +59,7 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         if (req == null || context == null) {
             return Response.error(500)
         }
-        val usrResp = context.client().usersInfo { r -> r.token(botConfig.slackBotToken).user(req.payload.userId) }
+        val usrResp = context.client().usersInfo { r -> r.token(token).user(req.payload.userId) }
         if (!usrResp.isOk) {
             context.logger.error(usrResp.error)
             return context.ack("что-то пошло не так")
@@ -86,7 +86,7 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
 
         supportChannelService.addSupportChannel(
             SupportChannel(
-                botConfig.teamId,
+                teamId,
                 conversation.id,
                 conversation.name,
                 users.map { it.id }.toSet()

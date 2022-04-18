@@ -26,4 +26,8 @@ class UnansweredMessageRepository(database: MongoDatabase) {
     fun deleteMessage(ts: String) {
         collection.deleteOne(UnansweredMessage::ts eq ts)
     }
+
+    fun deleteMessageByChannel(ts: String) {
+        collection.deleteMany(UnansweredMessage::channelId eq ts)
+    }
 }

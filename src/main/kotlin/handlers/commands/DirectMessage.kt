@@ -2,7 +2,6 @@ package handlers.commands
 
 import com.slack.api.bolt.context.builtin.SlashCommandContext
 import com.slack.api.bolt.response.Response
-import dsl.BotConfig
 
 class DirectMessageHandler {
     companion object {
@@ -13,11 +12,11 @@ class DirectMessageHandler {
             text: String,
             userId: String,
             context: SlashCommandContext,
-            botConfig: BotConfig
+            token: String
         ): Response {
 
             val conversationsOpenResponse = context.client().conversationsOpen { r ->
-                r.token(botConfig.slackBotToken)
+                r.token(token)
                     .users(listOf(userId))
             }
 
@@ -29,7 +28,7 @@ class DirectMessageHandler {
 
             val chatPostMessageResponse = context.client()
                 .chatPostMessage { r ->
-                    r.token(botConfig.slackBotToken)
+                    r.token(token)
                         .channel(userId)
                         .text(text)
                 }

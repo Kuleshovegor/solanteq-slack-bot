@@ -20,6 +20,11 @@ class YouTrackCommentRepository(database: MongoDatabase) {
     }
 
     fun delete(youTrackComment: YouTrackComment) {
-        collection.deleteMany(and(YouTrackMention::issueId eq youTrackComment.issueId, YouTrackMention::userEmail eq youTrackComment.userEmail.lowercase()))
+        collection.deleteMany(
+            and(
+                YouTrackMention::issueId eq youTrackComment.issueId,
+                YouTrackMention::userEmail eq youTrackComment.userEmail.lowercase()
+            )
+        )
     }
 }

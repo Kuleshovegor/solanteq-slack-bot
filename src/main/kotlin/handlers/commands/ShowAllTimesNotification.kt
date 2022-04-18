@@ -7,7 +7,7 @@ import com.slack.api.bolt.response.Response
 import org.kodein.di.DI
 import service.EveryWeekTaskService
 
-class ShowAllTimesNotification(di: DI, private val everyWeekTaskService: EveryWeekTaskService): SlashCommandHandler {
+class ShowAllTimesNotification(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
     override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
         if (req == null || context == null) {
             return Response.error(500)

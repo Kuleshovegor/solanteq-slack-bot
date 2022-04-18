@@ -1,8 +1,12 @@
 import com.slack.api.bolt.App
 import com.slack.api.bolt.WebEndpoint
 import com.slack.api.bolt.jetty.SlackAppServer
+import com.slack.api.model.event.ChannelDeletedEvent
+import com.slack.api.model.event.MessageDeletedEvent
 import com.slack.api.model.event.MessageEvent
 import handlers.commands.*
+import handlers.events.ChannelDeleteEventHandler
+import handlers.events.MessageDeleteEventHandler
 import handlers.events.MessageEventHandler
 import handlers.youTrack.NewYouTrackMentionComment
 import handlers.youTrack.NewTaskHandler
@@ -25,9 +29,10 @@ fun main() {
 
     val di = DI {
         bindSingleton("database") {
-            KMongo.createClient().getDatabase("solanteq_slack_bot")
+            KMongo.createClient(System.getenv("MONGODB_CONNSTRING")).getDatabase("solanteq_slack_bot")
         }
-        bindSingleton { BOT_CONFIG }
+        bindSingleton("SLACK_BOT_TOKEN") { System.getenv("SLACK_BOT_TOKEN") }
+        bindSingleton("TEAM_ID") { System.getenv("TEAM_ID") }
         bindSingleton { UnansweredMessageRepository(instance("database")) }
         bindSingleton { SupportChannelRepository(instance("database")) }
         bindSingleton { YouTrackCommentRepository(instance("database")) }
@@ -46,7 +51,7 @@ fun main() {
     val everyWeekTaskService = EveryWeekTaskService(di) {
         val digestService: DigestService by di.instance()
 
-        digestService.sendAllDigest(BOT_CONFIG.teamId)
+        digestService.sendAllDigest(System.getenv("TEAM_ID"))
     }
 
     app.command("/hello", HelloCommandHandler(di))
@@ -58,8 +63,10 @@ fun main() {
     app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
+    app.event(MessageDeletedEvent::class.java, MessageDeleteEventHandler(di))
+    app.event(ChannelDeletedEvent::class.java, ChannelDeleteEventHandler(di))
 
-    app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(app.client, BOT_CONFIG))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/mention", NewYouTrackMentionComment(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/comment", NewYouTrackComment(di))

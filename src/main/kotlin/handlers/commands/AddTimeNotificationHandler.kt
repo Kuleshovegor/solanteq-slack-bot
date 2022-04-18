@@ -8,7 +8,7 @@ import org.kodein.di.DI
 import service.EveryWeekTaskService
 import java.util.Calendar
 
-class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: EveryWeekTaskService): SlashCommandHandler {
+class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
     companion object {
         val DAYS_OF_WEEK = mapOf(
             "понедельник" to Calendar.MONDAY,
@@ -17,7 +17,8 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
             "четверг" to Calendar.THURSDAY,
             "пятница" to Calendar.FRIDAY,
             "суббота" to Calendar.SATURDAY,
-            "воскресенье" to Calendar.SUNDAY)
+            "воскресенье" to Calendar.SUNDAY
+        )
     }
 
     fun get(string: String): Pair<Int, Pair<Int, Int>>? {

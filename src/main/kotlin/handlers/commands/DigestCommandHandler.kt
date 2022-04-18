@@ -4,11 +4,9 @@ import com.slack.api.bolt.context.builtin.SlashCommandContext
 import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
-import dsl.BotConfig
 import org.kodein.di.DI
 import org.kodein.di.instance
 import service.DigestService
-import service.UnansweredMessageService
 
 class DigestCommandHandler(di: DI) : SlashCommandHandler {
     private val digestService: DigestService by di.instance()

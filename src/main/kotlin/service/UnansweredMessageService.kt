@@ -18,4 +18,8 @@ class UnansweredMessageService(
     fun deleteMessage(ts: String) {
         unansweredMessageRepository.deleteMessage(ts)
     }
+
+    fun deleteMessagesByChannel(ts: String) {
+        unansweredMessageRepository.deleteMessageByChannel(ts)
+    }
 }

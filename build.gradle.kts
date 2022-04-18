@@ -19,5 +19,19 @@ dependencies {
 }
 
 application {
-    mainClassName = "MyAppKt" // add "Kt" suffix for main function source file
+    mainClassName = "MainKt" // add "Kt" suffix for main function source file
+}
+
+tasks.withType<Jar> {
+    manifest {
+        attributes["Main-Class"] = "MainKt"
+    }
+
+    duplicatesStrategy = DuplicatesStrategy.EXCLUDE
+    from(sourceSets.main.get().output)
+
+    dependsOn(configurations.runtimeClasspath)
+    from({
+        configurations.runtimeClasspath.get().filter { it.name.endsWith("jar") }.map { zipTree(it) }
+    })
 }

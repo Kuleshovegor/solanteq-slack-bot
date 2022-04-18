@@ -13,7 +13,7 @@ import service.MessageService
 import service.UserService
 import service.YouTrackCommentService
 
-class NewYouTrackMentionComment(di: DI): WebEndpointHandler {
+class NewYouTrackMentionComment(di: DI) : WebEndpointHandler {
     private val userService: UserService by di.instance()
     private val messageService: MessageService by di.instance()
     private val youTrackCommentService: YouTrackCommentService by di.instance()

@@ -2,30 +2,33 @@ package service
 
 import com.slack.api.methods.MethodsClient
 import com.slack.api.model.User
-import dsl.BotConfig
 import org.kodein.di.DI
 import org.kodein.di.instance
 
 class UserService(di: DI) {
     private val slackClient: MethodsClient by di.instance("slackClient")
-    private val botConfig: BotConfig by di.instance()
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
+    private val teamId: String by di.instance("TEAM_ID")
 
     fun existsById(userId: String): Boolean {
-        return slackClient.usersList {r ->
-            r.token(botConfig.slackBotToken)
-                .teamId(botConfig.teamId) }.members.any {it.id == userId}
+        return slackClient.usersList { r ->
+            r.token(token)
+                .teamId(teamId)
+        }.members.any { it.id == userId }
     }
 
     fun existsByName(name: String): Boolean {
-        return slackClient.usersList {r ->
-            r.token(botConfig.slackBotToken)
-                .teamId(botConfig.teamId) }.members.any {it.name == name}
+        return slackClient.usersList { r ->
+            r.token(token)
+                .teamId(teamId)
+        }.members.any { it.name == name }
     }
 
     fun getUserIdByName(name: String): String {
         return slackClient.usersList { r ->
-            r.token(botConfig.slackBotToken)
-                .teamId(botConfig.teamId) }.members.find {it.name == name}?.name ?: throw IllegalArgumentException()
+            r.token(token)
+                .teamId(teamId)
+        }.members.find { it.name == name }?.name ?: throw IllegalArgumentException()
     }
 
     fun isAdmin(userId: String): Boolean {
@@ -33,31 +36,31 @@ class UserService(di: DI) {
     }
 
     fun getUserInfoById(userId: String): User {
-        val resp = slackClient.usersInfo { r -> r.token(botConfig.slackBotToken).user(userId) }
+        val resp = slackClient.usersInfo { r -> r.token(token).user(userId) }
 
-        check(resp.isOk)
+        check(resp.isOk) { resp.error }
 
         return resp.user
     }
 
     fun getUserIdByEmail(email: String): String {
-        return slackClient.usersLookupByEmail {r ->
+        return slackClient.usersLookupByEmail { r ->
             r.email(email)
-                .token(botConfig.slackBotToken)
+                .token(token)
         }.user.id
     }
 
     fun getUserEmail(userId: String): String {
         return slackClient.usersInfo { r ->
-            r.token(botConfig.slackBotToken)
+            r.token(token)
                 .user(userId)
         }.user.profile.email
     }
 
     fun getUserByEmail(email: String): User {
-        return slackClient.usersLookupByEmail {r ->
+        return slackClient.usersLookupByEmail { r ->
             r.email(email)
-                .token(botConfig.slackBotToken)
+                .token(token)
         }.user
     }
 

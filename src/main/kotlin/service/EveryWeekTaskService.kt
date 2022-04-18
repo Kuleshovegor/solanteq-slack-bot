@@ -1,6 +1,5 @@
 package service
 
-import dsl.BotConfig
 import models.ScheduleTime
 import org.kodein.di.DI
 import org.kodein.di.instance
@@ -14,6 +13,7 @@ class EveryWeekTaskService(di: DI, private val task: () -> Unit) {
         private val DEFAULT_TIME_ZONE = TimeZone.getTimeZone(ZoneId.of("Europe/Moscow"))
         private val DEFAULT_LOCAL = Locale("ru")
         private val WEEK_PERIOD: Long
+
         init {
             val calendar = Calendar.getInstance(DEFAULT_TIME_ZONE, DEFAULT_LOCAL)
             calendar.time = Date(0L)
@@ -22,12 +22,12 @@ class EveryWeekTaskService(di: DI, private val task: () -> Unit) {
         }
     }
 
-    private val timer: Timer = Timer("scheduler",true)
+    private val timer: Timer = Timer("scheduler", true)
     private val scheduleTimeRepository: ScheduleTimeRepository by di.instance()
-    private val botConfig: BotConfig by di.instance()
+    private val teamId: String by di.instance("TEAM_ID")
 
     init {
-        val schedules = scheduleTimeRepository.getByTeamId(botConfig.teamId)
+        val schedules = scheduleTimeRepository.getByTeamId(teamId)
         schedules.forEach {
             addNewTime(it.dayOfWeek, it.hours, it.minutes)
         }
@@ -51,7 +51,7 @@ class EveryWeekTaskService(di: DI, private val task: () -> Unit) {
         }
 
         timer.schedule(firstDate.time, WEEK_PERIOD) {
-
+            task()
         }
     }
 

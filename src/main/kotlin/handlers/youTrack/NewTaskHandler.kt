@@ -12,7 +12,7 @@ import org.kodein.di.instance
 import service.MessageService
 import service.UserService
 
-class NewTaskHandler(di: DI): WebEndpointHandler {
+class NewTaskHandler(di: DI) : WebEndpointHandler {
     private val userService: UserService by di.instance()
     private val messageService: MessageService by di.instance()
 

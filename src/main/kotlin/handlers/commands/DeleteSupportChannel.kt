@@ -5,24 +5,23 @@ import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import com.slack.api.model.Conversation
-import dsl.BotConfig
 import org.kodein.di.DI
 import org.kodein.di.instance
 import service.SupportChannelService
 
-// TODO: 24.03.2022 deletemessages 
-class DeleteSupportChannel(di: DI): SlashCommandHandler {
+class DeleteSupportChannel(di: DI) : SlashCommandHandler {
     private val supportChannelService: SupportChannelService by di.instance()
-    private val botConfig: BotConfig by di.instance()
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
+    private val teamId: String by di.instance("TEAM_ID")
 
     fun getConversation(tag: String, context: SlashCommandContext): Conversation? {
         if (tag.isEmpty() || tag[0] != '#') {
             return null
         }
 
-        val conversations = context.client().conversationsList {r ->
-            r.teamId(botConfig.teamId)
-                .token(botConfig.slackBotToken)
+        val conversations = context.client().conversationsList { r ->
+            r.teamId(teamId)
+                .token(token)
                 .excludeArchived(false)
         }
 
@@ -38,14 +37,14 @@ class DeleteSupportChannel(di: DI): SlashCommandHandler {
         if (req == null || context == null) {
             return Response.error(500)
         }
-        val usrResp = context.client().usersInfo { r -> r.token(botConfig.slackBotToken).user(req.payload.userId) }
+        val usrResp = context.client().usersInfo { r -> r.token(token).user(req.payload.userId) }
         if (!usrResp.isOk) {
             context.logger.error(usrResp.error)
             return context.ack("что-то пошло не так")
         }
 
         if (usrResp.user.isBot) {
-            return context.ack("пшлнх")
+            return context.ack("no")
         }
 
         if (!usrResp.user.isAdmin) {

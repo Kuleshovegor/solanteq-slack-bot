@@ -3,7 +3,6 @@ package service
 
 import com.slack.api.methods.MethodsClient
 import com.slack.api.methods.response.chat.ChatPostMessageResponse
-import dsl.BotConfig
 import org.kodein.di.DI
 import org.kodein.di.instance
 import repository.SupportChannelRepository
@@ -16,11 +15,11 @@ class DigestService(di: DI) {
     private val youTrackCommentRepository: YouTrackCommentRepository by di.instance()
     private val userService: UserService by di.instance()
     private val slackClient: MethodsClient by di.instance("slackClient")
-    private val botConfig by di.instance<BotConfig>()
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
 
     fun sendAllDigest(teamId: String) {
         val usersListResponse = slackClient.usersList { r ->
-            r.token(botConfig.slackBotToken)
+            r.token(token)
                 .teamId(teamId)
         }
         val usersList = usersListResponse.members
@@ -55,12 +54,12 @@ class DigestService(di: DI) {
         }
 
         slackClient.conversationsOpen { r ->
-            r.token(botConfig.slackBotToken)
+            r.token(token)
                 .users(listOf(userId))
         }
 
-        return slackClient.chatPostMessage {r ->
-            r.token(botConfig.slackBotToken)
+        return slackClient.chatPostMessage { r ->
+            r.token(token)
                 .channel(userId)
                 .text(digest.toString())
         }
