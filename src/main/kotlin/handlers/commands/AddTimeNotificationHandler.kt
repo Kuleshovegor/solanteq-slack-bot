@@ -5,7 +5,9 @@ import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import org.kodein.di.DI
+import org.kodein.di.instance
 import service.EveryWeekTaskService
+import service.UserService
 import java.util.Calendar
 
 class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
@@ -21,19 +23,30 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
         )
     }
 
+    private val userService: UserService by di.instance()
+
     fun get(string: String): Pair<Int, Pair<Int, Int>>? {
         val dayOfWeek: Int
-        val list = string.split("\\s".toRegex())
+        val list = string.split("\\s+".toRegex())
         if (list.size != 2) {
             return null
         }
         dayOfWeek = DAYS_OF_WEEK[list[0]] ?: return null
         val strTime = list[1]
-        if (!strTime.matches("^\\d\\d:\\d\\d$".toRegex())) {
+
+        if (strTime.split(":").size != 2) {
             return null
         }
-        val hours = strTime.slice(0..1).toInt()
-        val minute = strTime.slice(3..4).toInt()
+
+        val hoursStr = strTime.split(":")[0]
+        val minuteStr = strTime.split(":")[1]
+
+        val hours = hoursStr.toIntOrNull() ?: return null
+        val minute = minuteStr.toIntOrNull() ?: return null
+
+        if (!(hours in 0 until 24 && minute in  0 until 60)) {
+            return null
+        }
 
         return dayOfWeek to (hours to minute)
     }
@@ -41,6 +54,10 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
     override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
         if (req == null || context == null) {
             return Response.error(500)
+        }
+
+        if (!userService.isAdmin(req.payload.userId)) {
+            return context.ack("очень жаль, вы не админ")
         }
 
         val (dayOfWeek, time) = get(req.payload.text) ?: return context.ack("неверный запрос")

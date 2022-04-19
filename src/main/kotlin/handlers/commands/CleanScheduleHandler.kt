@@ -6,11 +6,10 @@ import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
 import org.kodein.di.DI
 import org.kodein.di.instance
-import service.SupportChannelService
+import service.EveryWeekTaskService
 import service.UserService
 
-class ShowAllChannels(di: DI): SlashCommandHandler {
-    private val supportChannelService: SupportChannelService by di.instance()
+class CleanScheduleHandler(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
     private val userService: UserService by di.instance()
 
     override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
@@ -22,8 +21,8 @@ class ShowAllChannels(di: DI): SlashCommandHandler {
             return context.ack("очень жаль, вы не админ")
         }
 
-        return context.ack(supportChannelService.getAllChannels(req.payload.teamId).toString())
+        everyWeekTaskService.clean()
+
+        return context.ack("расписание удалено")
     }
-
-
 }

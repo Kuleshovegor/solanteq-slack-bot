@@ -77,6 +77,9 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         val scanner = Scanner(text.byteInputStream(Charset.forName("UTF-8")))
         val channelTag = scanner.next()
         val conversation = getConversation(channelTag, context) ?: return context.ack("некорректый тег канала")
+        if (supportChannelService.isSupportChannel(conversation.id)) {
+            return context.ack("канал уже добавлен")
+        }
         val users = mutableListOf<User>()
 
         while (scanner.hasNext()) {

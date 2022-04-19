@@ -4,10 +4,12 @@ import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.event.ChannelDeletedEvent
 import com.slack.api.model.event.MessageDeletedEvent
 import com.slack.api.model.event.MessageEvent
+import com.slack.api.model.event.ReactionAddedEvent
 import handlers.commands.*
 import handlers.events.ChannelDeleteEventHandler
 import handlers.events.MessageDeleteEventHandler
 import handlers.events.MessageEventHandler
+import handlers.events.ReactionAddedEventHandler
 import handlers.youTrack.NewYouTrackMentionComment
 import handlers.youTrack.NewTaskHandler
 import handlers.youTrack.NewYouTrackComment
@@ -61,10 +63,12 @@ fun main() {
     app.command("/showchannels", ShowAllChannels(di))
     app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
     app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
+    app.command("/cleanschedule", CleanScheduleHandler(di, everyWeekTaskService))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
     app.event(MessageDeletedEvent::class.java, MessageDeleteEventHandler(di))
     app.event(ChannelDeletedEvent::class.java, ChannelDeleteEventHandler(di))
+    app.event(ReactionAddedEvent::class.java, ReactionAddedEventHandler(di))
 
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))

@@ -25,7 +25,9 @@ class DigestService(di: DI) {
         val usersList = usersListResponse.members
 
         usersList.forEach {
-            sendUserDigest(it.id)
+            if (!it.isBot && !it.isStranger) {
+                sendUserDigest(it.id)
+            }
         }
     }
 
@@ -44,7 +46,7 @@ class DigestService(di: DI) {
         }
 
         val user = userService.getUserInfoById(userId)
-        val youTrackComments = youTrackCommentRepository.getByEmail(user.profile.email.lowercase())
+        val youTrackComments = if (user.profile.email != null) youTrackCommentRepository.getByEmail(user.profile.email.lowercase()) else listOf()
         digest.append("У вас неотвеченные сообщения в чатах YouTrack.")
             .append(System.lineSeparator())
             .append(System.lineSeparator())

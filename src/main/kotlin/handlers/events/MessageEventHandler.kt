@@ -28,7 +28,7 @@ class MessageEventHandler(di: DI) : BoltEventHandler<MessageEvent> {
                     unansweredMessageService.deleteMessage(req.event.threadTs)
                 }
             } else {
-                if (true || !supportChannelService.isSupportUser(req.event.user, req.event.channel)) {
+                if (!supportChannelService.isSupportUser(req.event.user, req.event.channel)) {
                     val linkResp = context.client().chatGetPermalink { r ->
                         r.token(token)
                             .channel(req.event.channel)
