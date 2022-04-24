@@ -19,6 +19,7 @@ import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.litote.kmongo.KMongo
+import org.slf4j.LoggerFactory
 import repository.ScheduleTimeRepository
 import repository.SupportChannelRepository
 import repository.UnansweredMessageRepository
@@ -39,7 +40,7 @@ fun main() {
         bindSingleton { SupportChannelRepository(instance("database")) }
         bindSingleton { YouTrackCommentRepository(instance("database")) }
         bindSingleton { YouTrackCommentService(di) }
-        bindSingleton { UnansweredMessageService(instance()) }
+        bindSingleton { UnansweredMessageService(di) }
         bindSingleton { DigestService(di) }
         bindSingleton { MessageService(di) }
         bindSingleton { UserService(di) }
