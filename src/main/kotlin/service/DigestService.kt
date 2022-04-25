@@ -34,9 +34,13 @@ class DigestService(di: DI) {
     fun sendUserDigest(userId: String): ChatPostMessageResponse {
         val userChannels = supportChannelRepository.getSupportChannelsByUsedId(userId)
         val digest = StringBuilder()
-        digest.append("У вас неотвеченные сообщения в чатах поодержки.")
-            .append(System.lineSeparator())
-            .append(System.lineSeparator())
+        if (userChannels.isEmpty()) {
+            digest.append("У вас нет неотвеченных сообщений в чатах поддержки.")
+        } else {
+            digest.append("У вас неотвеченные сообщения в чатах поддержки.")
+                .append(System.lineSeparator())
+                .append(System.lineSeparator())
+        }
         userChannels.forEach { channel ->
             val messages = unansweredMessageRepository.getMessagesByChannelId(channel.id)
             val links = messages.joinToString(System.lineSeparator()) { it.link }
@@ -46,11 +50,20 @@ class DigestService(di: DI) {
         }
 
         val user = userService.getUserInfoById(userId)
-        val youTrackComments = if (user.profile.email != null) youTrackCommentRepository.getByEmail(user.profile.email.lowercase()) else listOf()
-        digest.append("У вас неотвеченные сообщения в чатах YouTrack.")
-            .append(System.lineSeparator())
-            .append(System.lineSeparator())
+        val youTrackComments =
+            if (user.profile.email != null) {
+                youTrackCommentRepository.getByEmail(user.profile.email.lowercase())
+            } else {
+                listOf()
+            }
+        if (youTrackComments.isEmpty()) {
+            digest.append("У вас нет неотвеченных сообщений в чатах YouTrack.")
+        } else {
+            digest.append("У вас неотвеченные сообщения в чатах YouTrack.")
+                .append(System.lineSeparator())
+                .append(System.lineSeparator())
 
+        }
         youTrackComments.forEach {
             digest.append(it.link).append(System.lineSeparator())
         }

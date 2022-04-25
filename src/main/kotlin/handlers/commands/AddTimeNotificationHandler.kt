@@ -25,13 +25,13 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
 
     private val userService: UserService by di.instance()
 
-    fun get(string: String): Pair<Int, Pair<Int, Int>>? {
+    private fun getData(string: String): Pair<Int, Pair<Int, Int>>? {
         val dayOfWeek: Int
         val list = string.split("\\s+".toRegex())
         if (list.size != 2) {
             return null
         }
-        dayOfWeek = DAYS_OF_WEEK[list[0]] ?: return null
+        dayOfWeek = DAYS_OF_WEEK[list[0].lowercase()] ?: return null
         val strTime = list[1]
 
         if (strTime.split(":").size != 2) {
@@ -60,7 +60,7 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
             return context.ack("очень жаль, вы не админ")
         }
 
-        val (dayOfWeek, time) = get(req.payload.text) ?: return context.ack("неверный запрос")
+        val (dayOfWeek, time) = getData(req.payload.text) ?: return context.ack("неверный запрос")
 
         everyWeekTaskService.addAndSaveNewTime(req.payload.teamId, dayOfWeek, time.first, time.second)
 

@@ -66,11 +66,11 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         }
 
         if (usrResp.user.isBot) {
-            return context.ack("пшлнх")
+            return context.ack("no")
         }
 
         if (!usrResp.user.isAdmin) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("Очень жаль, вы не админ")
         }
 
         val text = req.payload.text ?: return context.ack("некорректая комманда")

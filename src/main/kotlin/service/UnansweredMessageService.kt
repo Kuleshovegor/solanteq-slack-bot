@@ -18,7 +18,7 @@ class UnansweredMessageService(di: DI) {
     private val supportChannelService: SupportChannelService by di.instance()
     private val client: MethodsClient by di.instance("slackClient")
     private val token: String by di.instance("SLACK_BOT_TOKEN")
-    private val logger = LoggerFactory.getLogger("my-awesome-slack-app")!!
+    private val logger = LoggerFactory.getLogger("slack-app")!!
 
     fun getMessage(channelId: String, ts: String): Message? {
         try {
