@@ -26,9 +26,17 @@ class SupportChannelService(di: DI) {
         return supportChannelRepository.getSupportChannelByTeamId(teamId)
     }
 
-    fun deleteSupportChannel(supportChannelId: String) {
+    fun deleteSupportChannel(supportChannelId: String): Boolean {
         unansweredMessageRepository.deleteMessageByChannel(supportChannelId)
         supportChannelRepository.delete(supportChannelId)
+        return true
+    }
+
+    fun deleteSupportChannelByName(name: String): Boolean {
+        val supportChannel = supportChannelRepository.getSupportChannelByName(name) ?: return false
+        unansweredMessageRepository.deleteMessageByChannel(supportChannel.id)
+        supportChannelRepository.delete(supportChannel.id)
+        return true
     }
 
     fun isSupportUser(userId: String, channelId: String): Boolean {

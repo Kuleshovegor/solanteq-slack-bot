@@ -26,6 +26,10 @@ class SupportChannelRepository(database: MongoDatabase) {
         return collection.find(SupportChannel::teamId eq teamId).toList()
     }
 
+    fun getSupportChannelByName(name: String): SupportChannel? {
+        return collection.findOne(SupportChannel::name eq name)
+    }
+
     fun getSupportChannelById(slackId: String): SupportChannel? {
         return collection.findOne { SupportChannel::id eq slackId }
     }
