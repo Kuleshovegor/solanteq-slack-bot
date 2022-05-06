@@ -9,6 +9,7 @@ import com.slack.api.bolt.response.Response
 import models.YouTrackComment
 import org.kodein.di.DI
 import org.kodein.di.instance
+import org.slf4j.LoggerFactory
 import service.YouTrackCommentService
 
 class NewYouTrackComment(di: DI) : WebEndpointHandler {
@@ -18,6 +19,10 @@ class NewYouTrackComment(di: DI) : WebEndpointHandler {
         if (request == null || context == null) {
             return Response.error(500)
         }
+        if (request.clientIpAddress != System.getenv("YOU_TRACK_IP")) {
+            return Response.error(405)
+        }
+
 
         val comment = jacksonObjectMapper().readValue<YouTrackComment>(request.requestBodyAsString)
 

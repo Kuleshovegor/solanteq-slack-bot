@@ -19,6 +19,6 @@ class SLAHandler(di: DI) : WebEndpointHandler {
                 .text(request?.requestBodyAsString)
         }
 
-        return Response.json(200, "okes")
+        return Response.ok()
     }
 }

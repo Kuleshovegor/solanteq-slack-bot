@@ -37,16 +37,17 @@ class DigestService(di: DI) {
         if (userChannels.isEmpty()) {
             digest.append("У вас нет неотвеченных сообщений в чатах поддержки.")
         } else {
-            digest.append("У вас неотвеченные сообщения в чатах поддержки.")
-                .append(System.lineSeparator())
-                .append(System.lineSeparator())
+            digest.append("У вас неотвеченные сообщения в чатах поддержки:")
         }
+        digest.append(System.lineSeparator()).append(System.lineSeparator())
         userChannels.forEach { channel ->
             val messages = unansweredMessageRepository.getMessagesByChannelId(channel.id)
-            val links = messages.joinToString(System.lineSeparator()) { it.link }
+            if (messages.isNotEmpty()) {
+                val links = messages.joinToString(System.lineSeparator()) { it.link }
 
-            digest.append("В канале ${channel.name}:").append(System.lineSeparator())
-            digest.append(links).append(System.lineSeparator())
+                digest.append("В канале ${channel.name}:").append(System.lineSeparator())
+                digest.append(links).append(System.lineSeparator())
+            }
         }
 
         val user = userService.getUserInfoById(userId)
@@ -59,7 +60,7 @@ class DigestService(di: DI) {
         if (youTrackComments.isEmpty()) {
             digest.append("У вас нет неотвеченных сообщений в чатах YouTrack.")
         } else {
-            digest.append("У вас неотвеченные сообщения в чатах YouTrack.")
+            digest.append("У вас неотвеченные сообщения в чатах YouTrack:")
                 .append(System.lineSeparator())
                 .append(System.lineSeparator())
 

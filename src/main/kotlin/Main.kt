@@ -1,4 +1,5 @@
 import com.slack.api.bolt.App
+import com.slack.api.bolt.AppConfig
 import com.slack.api.bolt.WebEndpoint
 import com.slack.api.bolt.jetty.SlackAppServer
 import com.slack.api.model.event.ChannelDeletedEvent

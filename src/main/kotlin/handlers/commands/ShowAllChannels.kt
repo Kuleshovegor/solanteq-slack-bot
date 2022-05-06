@@ -9,7 +9,7 @@ import org.kodein.di.instance
 import service.SupportChannelService
 import service.UserService
 
-class ShowAllChannels(di: DI): SlashCommandHandler {
+class ShowAllChannels(di: DI) : SlashCommandHandler {
     private val supportChannelService: SupportChannelService by di.instance()
     private val userService: UserService by di.instance()
 
@@ -22,7 +22,19 @@ class ShowAllChannels(di: DI): SlashCommandHandler {
             return context.ack("очень жаль, вы не админ")
         }
 
-        return context.ack(supportChannelService.getAllChannels(req.payload.teamId).toString())
+        val channelsInfo = "Каналы:" + System.lineSeparator() +
+                supportChannelService.getAllChannels(req.payload.teamId)
+                    .joinToString(System.lineSeparator()) {
+                    """
+                Название: ${it.name}
+                Пользователи поддержки: ${
+                        it.supportUserIds
+                            .joinToString(" ") { userId -> userService.getName(userId) }
+                    }
+            """.trimIndent()
+                }
+
+        return context.ack(channelsInfo)
     }
 
 

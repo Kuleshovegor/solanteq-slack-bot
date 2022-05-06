@@ -15,17 +15,21 @@ import service.UserService
 class NewTaskHandler(di: DI) : WebEndpointHandler {
     private val userService: UserService by di.instance()
     private val messageService: MessageService by di.instance()
+    private val mapper = jacksonObjectMapper()
 
     override fun apply(request: WebEndpointRequest?, context: WebEndpointContext?): Response {
         if (request == null || context == null) {
             return Response.error(500)
         }
+        if (request.clientIpAddress != System.getenv("YOU_TRACK_IP")) {
+            return Response.error(405)
+        }
 
-        val newTask = jacksonObjectMapper().readValue<NewTask>(request.requestBodyAsString)
+        val newTask = mapper.readValue<NewTask>(request.requestBodyAsString)
 
         messageService.sendMessage(userService.getUserIdByEmail(newTask.ownerEmail!!), newTask.toString())
 
-        return Response.ok("okes")
+        return Response.ok()
     }
 
 }

@@ -23,6 +23,10 @@ class NewYouTrackMentionComment(di: DI) : WebEndpointHandler {
             return Response.error(500)
         }
 
+        if (request.clientIpAddress != System.getenv("YOU_TRACK_IP")) {
+            return Response.error(405)
+        }
+
         val mention = jacksonObjectMapper().readValue<YouTrackMention>(request.requestBodyAsString)
 
         youTrackCommentService.save(mention)

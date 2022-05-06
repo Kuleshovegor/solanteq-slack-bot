@@ -1,5 +1,6 @@
 package handlers.commands
 
+import DAYS_OF_WEEK_TO_STRING
 import com.slack.api.bolt.context.builtin.SlashCommandContext
 import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
@@ -21,6 +22,11 @@ class ShowAllTimesNotification(di: DI, private val everyWeekTaskService: EveryWe
             return context.ack("очень жаль, вы не админ")
         }
 
-        return context.ack(everyWeekTaskService.getAllTimes(req.payload.teamId).toString())
+        val timesNotificationInfo = "Расписание:" + System.lineSeparator() +
+            everyWeekTaskService.getAllTimes(req.payload.teamId).joinToString(System.lineSeparator()) {
+                "${DAYS_OF_WEEK_TO_STRING[it.dayOfWeek]} ${it.hours}:${if (it.minutes < 10) "0" else ""}${it.minutes}"
+            }
+
+        return context.ack(timesNotificationInfo)
     }
 }

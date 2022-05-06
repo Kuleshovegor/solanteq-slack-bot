@@ -1,5 +1,6 @@
 package handlers.commands
 
+import DAYS_OF_WEEK
 import com.slack.api.bolt.context.builtin.SlashCommandContext
 import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
@@ -8,21 +9,8 @@ import org.kodein.di.DI
 import org.kodein.di.instance
 import service.EveryWeekTaskService
 import service.UserService
-import java.util.Calendar
 
 class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
-    companion object {
-        val DAYS_OF_WEEK = mapOf(
-            "понедельник" to Calendar.MONDAY,
-            "вторник" to Calendar.TUESDAY,
-            "среда" to Calendar.WEDNESDAY,
-            "четверг" to Calendar.THURSDAY,
-            "пятница" to Calendar.FRIDAY,
-            "суббота" to Calendar.SATURDAY,
-            "воскресенье" to Calendar.SUNDAY
-        )
-    }
-
     private val userService: UserService by di.instance()
 
     private fun getData(string: String): Pair<Int, Pair<Int, Int>>? {
