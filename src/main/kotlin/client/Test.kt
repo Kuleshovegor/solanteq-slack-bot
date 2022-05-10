@@ -3,8 +3,9 @@ package client
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import models.YouTrackAuthor
 import models.YouTrackComment2
+import models.YouTrackIssue
+import models.YouTrackSavedQuery
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -58,6 +59,30 @@ fun getComments(): List<YouTrackComment2> {
     return comments
 }
 
+//val nameSLA = "sla"
+fun getSLA(nameSLA: String): List<List<YouTrackIssue>?> {
+    val client = HttpClient.newBuilder().build()
+    val request = HttpRequest.newBuilder()
+        .uri(URI.create("https://$youTrackName/api/savedQueries?fields=id,name,issues%28" +
+                "id,summary,customFields%28" +
+                "name,value%28id,name%29" +
+                "%29" +
+                "%29"))
+        .headers("Authorization", "Bearer $accessToken", "Accept", "application/json")
+        .build()
+
+    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
+    val jsonStr = response.body()
+    val savedQueries: List<YouTrackSavedQuery> = mapper.readValue(jsonStr.replace("[]","null"))
+    return savedQueries.filter { it.name == "sla" }.map { sq ->
+        sq.issues?.map { issue ->
+            val priority = issue.customFields?.find { it.name == "Priority" }?.value?.name ?: ""
+            val type = issue.customFields?.find { it.name == "Type" }?.value?.name ?: ""
+            YouTrackIssue(issue.id, issue.summary, type, priority,"https://$youTrackName/issue/${issue.id}")
+        }
+    }
+}
+
 data class Update(val updated: Long?)
 
 fun getLastUpdateIssue(): Long? {
@@ -74,11 +99,3 @@ fun getLastUpdateIssue(): Long? {
     return mapper.readValue<Update>(jsonStr).updated
 }
 
-
-/*
-Упоминание считается отвеченным, если
-пользователь из команды проекта выполнил одно из действий:
-* ответил в комментариях, done
-* поставил реакцию на комментарий, impossible
-* изменил задачу. done
-*/
