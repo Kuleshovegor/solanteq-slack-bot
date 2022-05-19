@@ -3,9 +3,7 @@ package client
 import com.fasterxml.jackson.databind.DeserializationFeature
 import com.fasterxml.jackson.module.kotlin.jacksonObjectMapper
 import com.fasterxml.jackson.module.kotlin.readValue
-import models.YouTrackComment2
-import models.YouTrackIssue
-import models.YouTrackSavedQuery
+import models.*
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
@@ -13,89 +11,94 @@ import java.net.http.HttpResponse
 
 private val mapper = jacksonObjectMapper()
 
-// there are arguments:
 // from YouTrackSettings or some config:
 val accessToken = "perm:dmFscnVuMA==.NDgtMA==.IJoW7PYApOrjlKShjCKTV6L635ImFw"
 val youTrackName = "solanteqtestbot.youtrack.cloud"
 
-// from YouTrackComment
-val issueId = "2-185"
-val userEmail = "Kuleshovegor2001@gmail.com"
-val userLogin = "root" // maybe change email to login?
-// end arguments
-
 fun main() {
     mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
-    val comments = getComments()
 
-    val (lastCommentIndex, lastComment) = comments.withIndex().findLast { (it.value.author?.email ?: "") == userEmail }!!
-    val replyComment = comments.drop(lastCommentIndex + 1).any {
-//      This is FALSE, I need help with SupportChannel
-        (it.text != null
-                && it.text.contains("@$userLogin")
-                && (it.author?.login ?: "") != userLogin)
-    }
-    if (replyComment) println("ОТВЕЧЕННЫЙ КОММЕНТАРИЙ")
-
-
-    val issueUpdated = getLastUpdateIssue() ?: return
-    if (lastComment.created != null && lastComment.created < issueUpdated) println("Обновили задачу")
-
+    println( hasCommentBeenAnswered(YouTrackComment("DEMO-34", "karaseva@niuitmo.ru"), SupportChannel("", "", "", setOf("valrun0@ya.ru"))))
+//    hasCommentBeenAnswered(YouTrackComment("2-185", "Kuleshovegor2001@gmail.com"), SupportChannel("", "", "", setOf("valrun0@ya.ru")))
+//    println(getSLA(listOf("sla", "Назначенные на меня")).joinToString("\n\n"))
 }
 
-fun getComments(): List<YouTrackComment2> {
-    val client = HttpClient.newBuilder().build()
-    val request = HttpRequest.newBuilder()
-        .uri(URI.create("https://$youTrackName/api/issues/$issueId/comments?fields=id,author%28login,email%29,text"))
-        .headers("Authorization", "Bearer $accessToken", "Accept", "application/json")
-        .build()
+//TODO supportChannel.supportUserIds is not EMAIL
+fun hasCommentBeenAnswered(comment: YouTrackComment, supportChannel: SupportChannel): Boolean {
+    val comments = getComments(comment.issueId)
+    val userLogin = getLogin(comment.userEmail)
 
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-    val jsonStr = response.body()
-    val comments: List<YouTrackComment2> = mapper.readValue(jsonStr)
-//    println(jsonStr)
-//    println(comments.joinToString("\n"))
+    val (lastCommentOfUserIndex, lastCommentOfUser) = comments.withIndex()
+        .findLast { (it.value.author?.email ?: "") == comment.userEmail }!!
 
-    return comments
+//  check reply Comment
+    if (comments.drop(lastCommentOfUserIndex + 1).any {
+            (it.text != null
+                    && it.text.contains("@$userLogin")
+                    && supportChannel.supportUserIds.contains(it.author?.login ?: ""))
+        }) return true
+
+//  check Reaction
+    val reactions = getReactionsAuthorsEmail(comment.issueId, lastCommentOfUser.id)
+    if (!supportChannel.supportUserIds.any { reactions.contains(it) }) return true
+
+//    check update Issue
+    val (issueUpdate, issueUpdater) = getLastUpdateInfo(comment.issueId)
+    return (lastCommentOfUser.created != null && issueUpdate != null && lastCommentOfUser.created < issueUpdate)
+            && (issueUpdater != null && supportChannel.supportUserIds.contains(issueUpdater))
 }
 
-//val nameSLA = "sla"
-fun getSLA(nameSLA: String): List<List<YouTrackIssue>?> {
-    val client = HttpClient.newBuilder().build()
-    val request = HttpRequest.newBuilder()
-        .uri(URI.create("https://$youTrackName/api/savedQueries?fields=id,name,issues%28" +
-                "id,summary,customFields%28" +
-                "name,value%28id,name%29" +
-                "%29" +
-                "%29"))
-        .headers("Authorization", "Bearer $accessToken", "Accept", "application/json")
-        .build()
+private fun getComments(issueId: String): List<YouTrackComment2> {
+    val jsonStr = youTrackRequest("issues/$issueId/comments?fields=id,author%28login,email%29,text")
+    return mapper.readValue(jsonStr)
+}
 
-    val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-    val jsonStr = response.body()
-    val savedQueries: List<YouTrackSavedQuery> = mapper.readValue(jsonStr.replace("[]","null"))
-    return savedQueries.filter { it.name == "sla" }.map { sq ->
-        sq.issues?.map { issue ->
+private fun getReactionsAuthorsEmail(issueId: String, commentId: String): List<String> {
+    val jsonStr = youTrackRequest("issues/$issueId/comments/$commentId/reactions/?fields=author%28login,email%29")
+    data class Reaction(val author: YouTrackAuthor)
+    return mapper.readValue<List<Reaction>>(jsonStr).map { it.author.email?: "" }
+}
+
+private fun getLogin(userEmail: String): String {
+    val jsonStr = youTrackRequest("users?fields=login,email")
+    val listUsers = mapper.readValue<List<YouTrackAuthor>>(jsonStr)
+    return listUsers.find { it.email == userEmail }?.login ?: ""
+}
+
+private fun getLastUpdateInfo(issueId: String): Pair<Long?, String?> {
+    val jsonStr = youTrackRequest("issues/$issueId?fields=updated,updater%28login,email%29")
+    data class Update(val updated: Long?, val updater: YouTrackAuthor?)
+
+    val update = mapper.readValue<Update>(jsonStr)
+    return Pair(update.updated, update.updater?.email)
+}
+
+fun getSLA(namesSLA: List<String>): List<Pair<String, List<YouTrackIssue>?>> {
+    val jsonStr = youTrackRequest(
+        "savedQueries?fields=id,name,issues" +
+                "%28id,summary,customFields" +
+                "%28name,value%28id,name%29" +
+                "%29%29"
+    )
+    val savedQueries: List<YouTrackSavedQuery> = mapper.readValue(jsonStr.replace("[]", "null"))
+
+    return savedQueries.filter { namesSLA.contains(it.name) }.map { sq ->
+        val list = sq.issues?.map { issue ->
             val priority = issue.customFields?.find { it.name == "Priority" }?.value?.name ?: ""
             val type = issue.customFields?.find { it.name == "Type" }?.value?.name ?: ""
-            YouTrackIssue(issue.id, issue.summary, type, priority,"https://$youTrackName/issue/${issue.id}")
+            YouTrackIssue(issue.id, issue.summary, type, priority, "https://$youTrackName/issue/${issue.id}")
         }
+        Pair(sq.name, list)
     }
 }
 
-data class Update(val updated: Long?)
-
-fun getLastUpdateIssue(): Long? {
-//    Хорошо ещё проверить, что это сделал кто-то из команды
+private fun youTrackRequest(requestString: String): String {
     val client = HttpClient.newBuilder().build()
     val request = HttpRequest.newBuilder()
-        .uri(URI.create("https://$youTrackName/api/issues/$issueId?fields=updated"))
+        .uri(URI.create("https://$youTrackName/api/$requestString"))
         .headers("Authorization", "Bearer $accessToken", "Accept", "application/json")
         .build()
 
     val response = client.send(request, HttpResponse.BodyHandlers.ofString())
-    val jsonStr = response.body()
-
-    return mapper.readValue<Update>(jsonStr).updated
+    return response.body()
 }
-
