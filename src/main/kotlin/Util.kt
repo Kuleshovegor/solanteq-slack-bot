@@ -1,3 +1,5 @@
+import models.TaskPriority
+import models.UserSettings
 import java.util.*
 
 val DAYS_OF_WEEK = mapOf(
@@ -17,4 +19,18 @@ val DAYS_OF_WEEK_TO_STRING = mapOf(
     Calendar.FRIDAY to "пятница",
     Calendar.SATURDAY to "суббота",
     Calendar.SUNDAY to "воскресенье"
+)
+
+val DEFAULT_USER_SETTINGS = UserSettings(
+    userId = "",
+    isSlackDigestMuted = false,
+    isYouTrackMuted = false,
+    mutedYouTrackProjects = setOf(),
+    notifyPriority = setOf(
+        TaskPriority.Minor,
+        TaskPriority.Normal,
+        TaskPriority.Major,
+        TaskPriority.Critical,
+        TaskPriority.ShowStopper
+    )
 )

@@ -2,10 +2,7 @@ package repository
 
 import com.mongodb.client.MongoDatabase
 import models.ScheduleTime
-import org.litote.kmongo.eq
-import org.litote.kmongo.findOne
-import org.litote.kmongo.findOneById
-import org.litote.kmongo.getCollection
+import org.litote.kmongo.*
 import org.litote.kmongo.util.idValue
 
 class ScheduleTimeRepository(database: MongoDatabase) {
@@ -20,7 +17,19 @@ class ScheduleTimeRepository(database: MongoDatabase) {
     }
 
     fun contains(scheduleTime: ScheduleTime): Boolean {
-        return scheduleTime.idValue?.let { collection.findOneById(it) } != null
+        return collection.findOne(and(
+            ScheduleTime::teamId eq scheduleTime.teamId,
+            ScheduleTime::minutes eq scheduleTime.minutes,
+            ScheduleTime::hours eq scheduleTime.hours
+        )) != null
+    }
+
+    fun delete(scheduleTime: ScheduleTime) {
+        collection.deleteOne(and(
+            ScheduleTime::teamId eq scheduleTime.teamId,
+            ScheduleTime::minutes eq scheduleTime.minutes,
+            ScheduleTime::hours eq scheduleTime.hours
+        ))
     }
 
     fun clean(teamId: String) {

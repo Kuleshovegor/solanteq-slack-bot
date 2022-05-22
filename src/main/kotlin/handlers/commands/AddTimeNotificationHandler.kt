@@ -5,6 +5,7 @@ import com.slack.api.bolt.context.builtin.SlashCommandContext
 import com.slack.api.bolt.handler.builtin.SlashCommandHandler
 import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
+import models.ScheduleTime
 import org.kodein.di.DI
 import org.kodein.di.instance
 import service.EveryWeekTaskService
@@ -39,18 +40,14 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
         return dayOfWeek to (hours to minute)
     }
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         if (!userService.isAdmin(req.payload.userId)) {
             return context.ack("очень жаль, вы не админ")
         }
 
         val (dayOfWeek, time) = getData(req.payload.text) ?: return context.ack("неверный запрос")
 
-        everyWeekTaskService.addAndSaveNewTime(req.payload.teamId, dayOfWeek, time.first, time.second)
+        everyWeekTaskService.addAndSaveNewTime(ScheduleTime(req.payload.teamId, dayOfWeek, time.first, time.second))
 
         return context.ack("время добавлено")
     }

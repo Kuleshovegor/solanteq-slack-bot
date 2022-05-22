@@ -65,14 +65,24 @@ class EveryWeekTaskService(di: DI, private val task: () -> Unit) {
         timer = Timer("scheduler", true)
     }
 
-    fun addAndSaveNewTime(teamId: String, dayOfWeek: Int, hour: Int, minute: Int) {
-        val scheduleTime = ScheduleTime(teamId, dayOfWeek, hour, minute)
+    fun contains(scheduleTime: ScheduleTime): Boolean {
+        return scheduleTimeRepository.contains(scheduleTime)
+    }
+
+    fun addAndSaveNewTime(scheduleTime: ScheduleTime) {
 
         if (scheduleTimeRepository.contains(scheduleTime)) {
             return
         }
 
-        addNewTime(dayOfWeek, hour, minute)
+        addNewTime(scheduleTime.dayOfWeek, scheduleTime.hours, scheduleTime.minutes)
         scheduleTimeRepository.save(scheduleTime)
+    }
+
+    fun delete(scheduleTime: ScheduleTime) {
+        scheduleTimeRepository.delete(scheduleTime)
+        scheduleTimeRepository.getByTeamId(teamId).forEach {
+            addNewTime(it.dayOfWeek, it.hours, it.minutes)
+        }
     }
 }

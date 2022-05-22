@@ -48,7 +48,7 @@ fun hasCommentBeenAnswered(comment: YouTrackComment, supportChannel: SupportChan
             && (issueUpdater != null && supportChannel.supportUserIds.contains(issueUpdater))
 }
 
-private fun getComments(issueId: String): List<YouTrackComment2> {
+private fun getComments(issueId: String): List<YouTrackCommentInput> {
     val jsonStr = youTrackRequest("issues/$issueId/comments?fields=id,author%28login,email%29,text")
     return mapper.readValue(jsonStr)
 }

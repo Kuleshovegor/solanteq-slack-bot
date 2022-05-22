@@ -23,6 +23,8 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
             return null
         }
 
+        context.ack()
+
         val conversations = context.client().conversationsList { r ->
             r.teamId(teamId)
                 .token(token)
@@ -55,10 +57,7 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         return users.members.find { it.name == tag.slice(1 until tag.length) }
     }
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         val usrResp = context.client().usersInfo { r -> r.token(token).user(req.payload.userId) }
         if (!usrResp.isOk) {
             context.logger.error(usrResp.error)

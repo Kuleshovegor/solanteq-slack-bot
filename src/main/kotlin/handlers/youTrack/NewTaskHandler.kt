@@ -9,6 +9,7 @@ import com.slack.api.bolt.response.Response
 import models.NewTask
 import org.kodein.di.DI
 import org.kodein.di.instance
+import org.slf4j.LoggerFactory
 import service.MessageService
 import service.UserService
 
@@ -16,18 +17,44 @@ class NewTaskHandler(di: DI) : WebEndpointHandler {
     private val userService: UserService by di.instance()
     private val messageService: MessageService by di.instance()
     private val mapper = jacksonObjectMapper()
+    private val logger = LoggerFactory.getLogger("newYouTrackTask")
 
-    override fun apply(request: WebEndpointRequest?, context: WebEndpointContext?): Response {
-        if (request == null || context == null) {
-            return Response.error(500)
-        }
+    override fun apply(request: WebEndpointRequest, context: WebEndpointContext): Response {
         if (request.clientIpAddress != System.getenv("YOU_TRACK_IP")) {
             return Response.error(405)
         }
 
         val newTask = mapper.readValue<NewTask>(request.requestBodyAsString)
 
-        messageService.sendMessage(userService.getUserIdByEmail(newTask.ownerEmail!!), newTask.toString())
+        if (newTask.ownerEmail == null) {
+            logger.error("New task $newTask email is null.")
+            return Response.error(400)
+        }
+
+
+        try {
+            val userId = userService.getUserIdByEmail(newTask.ownerEmail) ?: return Response.ok()
+            if (!userService.isYouTrackUserMuted(userId, newTask.projectName!!)) {
+                messageService.sendMessage(userId, newTask.toString())
+            }
+        } catch (e: Exception) {
+            logger.error("Error while finding user ID by email. ${e.message}")
+
+            return Response.error(500)
+        }
+
+        if (newTask.assigneeEmail != null && newTask.assigneeEmail != newTask.ownerEmail) {
+            try {
+                val assigneeUserId = userService.getUserIdByEmail(newTask.assigneeEmail) ?: return Response.ok()
+                if (!userService.isYouTrackUserMuted(assigneeUserId, newTask.projectName)) {
+                    messageService.sendMessage(assigneeUserId, newTask.toString())
+                }
+            } catch (e: Exception) {
+                logger.error("Error while finding user ID by email. ${e.message}")
+
+                return Response.error(500)
+            }
+        }
 
         return Response.ok()
     }

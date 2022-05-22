@@ -9,20 +9,19 @@ import com.slack.api.bolt.response.Response
 import models.YouTrackMention
 import org.kodein.di.DI
 import org.kodein.di.instance
+import org.slf4j.LoggerFactory
 import service.MessageService
 import service.UserService
+import service.UserSettingsService
 import service.YouTrackCommentService
 
 class NewYouTrackMentionComment(di: DI) : WebEndpointHandler {
     private val userService: UserService by di.instance()
     private val messageService: MessageService by di.instance()
     private val youTrackCommentService: YouTrackCommentService by di.instance()
+    private val logger = LoggerFactory.getLogger("NewYouTrackMentionComment")
 
-    override fun apply(request: WebEndpointRequest?, context: WebEndpointContext?): Response {
-        if (request == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(request: WebEndpointRequest, context: WebEndpointContext): Response {
         if (request.clientIpAddress != System.getenv("YOU_TRACK_IP")) {
             return Response.error(405)
         }
@@ -31,7 +30,15 @@ class NewYouTrackMentionComment(di: DI) : WebEndpointHandler {
 
         youTrackCommentService.save(mention)
 
-        messageService.sendMessage(userService.getUserIdByEmail(mention.userEmail), mention.toString())
+        try {
+            val userId = userService.getUserIdByEmail(mention.userEmail) ?: return Response.error(400)
+            if (!userService.isYouTrackUserMuted(userId, mention.projectName!!)) {
+                messageService.sendMessage(userId, mention.toString())
+            }
+        } catch (e: Exception) {
+            logger.error(e.message)
+            return Response.error(500)
+        }
 
         return Response.ok()
     }

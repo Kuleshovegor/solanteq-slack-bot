@@ -4,17 +4,33 @@ import com.slack.api.methods.MethodsClient
 import com.slack.api.model.User
 import org.kodein.di.DI
 import org.kodein.di.instance
+import org.slf4j.LoggerFactory
 
 class UserService(di: DI) {
     private val slackClient: MethodsClient by di.instance("slackClient")
+    private val userSettingsService: UserSettingsService by di.instance()
     private val token: String by di.instance("SLACK_BOT_TOKEN")
     private val teamId: String by di.instance("TEAM_ID")
+    private val logger = LoggerFactory.getLogger("userService")
 
     fun existsById(userId: String): Boolean {
         return slackClient.usersList { r ->
             r.token(token)
                 .teamId(teamId)
         }.members.any { it.id == userId }
+    }
+
+    fun getUsers(): List<User> {
+        val usersListResponse = slackClient.usersList { r ->
+            r.token(token)
+                .teamId(teamId)
+        }
+        return usersListResponse.members!!
+    }
+
+    fun isYouTrackUserMuted(userId: String, project: String): Boolean {
+        val userSettings = userSettingsService.getUserSettingsById(userId)
+        return userSettings.isYouTrackMuted || userSettings.mutedYouTrackProjects.contains(project)
     }
 
     fun existsByName(name: String): Boolean {
@@ -43,11 +59,11 @@ class UserService(di: DI) {
         return resp.user
     }
 
-    fun getUserIdByEmail(email: String): String {
+    fun getUserIdByEmail(email: String): String? {
         return slackClient.usersLookupByEmail { r ->
-            r.email(email)
-                .token(token)
-        }.user.id
+                r.email(email)
+                    .token(token)
+            }?.user?.id
     }
 
     fun getUserEmail(userId: String): String {

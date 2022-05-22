@@ -1,6 +1,6 @@
 package models
 
-data class YouTrackComment2(
+data class YouTrackCommentInput(
     val id: String,
     val author: YouTrackAuthor?,
     val text: String?,

@@ -13,6 +13,7 @@ class DigestService(di: DI) {
     private val supportChannelRepository: SupportChannelRepository by di.instance()
     private val unansweredMessageRepository: UnansweredMessageRepository by di.instance()
     private val youTrackCommentRepository: YouTrackCommentRepository by di.instance()
+    private val userSettingsService: UserSettingsService by di.instance()
     private val userService: UserService by di.instance()
     private val slackClient: MethodsClient by di.instance("slackClient")
     private val token: String by di.instance("SLACK_BOT_TOKEN")
@@ -24,11 +25,10 @@ class DigestService(di: DI) {
         }
         val usersList = usersListResponse.members
 
-        usersList.forEach {
-            if (!it.isBot && !it.isStranger) {
-                sendUserDigest(it.id)
+        usersList.filter { !it.isBot && !it.isStranger && !userSettingsService.getUserSettingsById(it.id).isSlackDigestMuted }
+            .forEach {
+                    sendUserDigest(it.id)
             }
-        }
     }
 
     fun sendUserDigest(userId: String): ChatPostMessageResponse {
