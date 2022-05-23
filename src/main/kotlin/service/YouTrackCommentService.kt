@@ -13,7 +13,19 @@ class YouTrackCommentService(di: DI) {
         youTrackCommentRepository.save(youTrackMention)
     }
 
+    fun updateMention(youTrackMention: YouTrackMention) {
+//        if (hasCommentBeenAnswered(youTrackMention)) {
+//            youTrackCommentRepository.deleteOne(youTrackMention)
+//        }
+    }
+
+    fun updateAll() {
+        youTrackCommentRepository.getAll().forEach {
+            updateMention(it)
+        }
+    }
+
     fun deleteMentions(youTrackComment: YouTrackComment) {
-        youTrackCommentRepository.delete(youTrackComment)
+        youTrackCommentRepository.deleteMany(youTrackComment)
     }
 }
