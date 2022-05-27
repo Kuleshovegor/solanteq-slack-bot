@@ -76,7 +76,6 @@ fun main() {
     app.command("/showchannels", ShowAllChannels(di))
     app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
     app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
-    app.command("/cleanschedule", CleanScheduleHandler(di, everyWeekTaskService))
     app.command("/muteyoutrack", MuteYouTrackMessages(di))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
