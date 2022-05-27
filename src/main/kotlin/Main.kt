@@ -15,7 +15,6 @@ import handlers.events.MessageDeleteEventHandler
 import handlers.events.MessageEventHandler
 import handlers.events.ReactionAddedEventHandler
 import handlers.youTrack.NewTaskHandler
-import handlers.youTrack.NewYouTrackComment
 import handlers.youTrack.NewYouTrackMentionComment
 import handlers.youTrack.SLAHandler
 import initializers.MyInitializer
@@ -110,7 +109,6 @@ fun main() {
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/mention", NewYouTrackMentionComment(di))
-    app.endpoint(WebEndpoint.Method.POST, "/youtrack/comment", NewYouTrackComment(di))
 
     val server = SlackAppServer(app)
 
