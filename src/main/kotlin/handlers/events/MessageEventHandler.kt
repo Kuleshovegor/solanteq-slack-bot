@@ -17,11 +17,7 @@ class MessageEventHandler(di: DI) : BoltEventHandler<MessageEvent> {
     private val unansweredMessageService: UnansweredMessageService by di.instance()
     private val supportChannelService: SupportChannelService by di.instance()
 
-    override fun apply(req: EventsApiPayload<MessageEvent>?, context: EventContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: EventsApiPayload<MessageEvent>, context: EventContext): Response {
         if (supportChannelService.isSupportChannel(req.event.channel)) {
             if (req.event.threadTs != null) {
                 if (supportChannelService.isSupportUser(req.event.user, req.event.channel)) {

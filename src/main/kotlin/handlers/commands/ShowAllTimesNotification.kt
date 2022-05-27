@@ -13,11 +13,7 @@ import service.UserService
 class ShowAllTimesNotification(di: DI, private val everyWeekTaskService: EveryWeekTaskService) : SlashCommandHandler {
     private val userService: UserService by di.instance()
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         if (!userService.isAdmin(req.payload.userId)) {
             return context.ack("You must be admin to see schedule digests.")
         }

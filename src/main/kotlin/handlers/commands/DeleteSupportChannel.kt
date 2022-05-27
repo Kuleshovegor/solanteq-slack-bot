@@ -12,11 +12,7 @@ class DeleteSupportChannel(di: DI) : SlashCommandHandler {
     private val supportChannelService: SupportChannelService by di.instance()
     private val token: String by di.instance("SLACK_BOT_TOKEN")
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         val usrResp = context.client().usersInfo { r -> r.token(token).user(req.payload.userId) }
 
         if (!usrResp.isOk) {

@@ -11,11 +11,7 @@ import service.DigestService
 class DigestCommandHandler(di: DI) : SlashCommandHandler {
     private val digestService: DigestService by di.instance()
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         val response = digestService.sendUserDigest(req.payload.userId)
 
         if (!response.isOk) {

@@ -14,11 +14,7 @@ class MessageDeleteEventHandler(di: DI) : BoltEventHandler<MessageDeletedEvent> 
     private val unansweredMessageService: UnansweredMessageService by di.instance()
     private val supportChannelService: SupportChannelService by di.instance()
 
-    override fun apply(req: EventsApiPayload<MessageDeletedEvent>?, context: EventContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: EventsApiPayload<MessageDeletedEvent>, context: EventContext): Response {
         if (supportChannelService.isSupportChannel(req.event.channel)) {
             unansweredMessageService.deleteMessage(req.event.deletedTs)
         }

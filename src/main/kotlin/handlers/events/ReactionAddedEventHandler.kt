@@ -14,11 +14,7 @@ class ReactionAddedEventHandler(di: DI) : BoltEventHandler<ReactionAddedEvent> {
     private val supportChannelService: SupportChannelService by di.instance()
     private val unansweredMessageService: UnansweredMessageService by di.instance()
 
-    override fun apply(req: EventsApiPayload<ReactionAddedEvent>?, context: EventContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: EventsApiPayload<ReactionAddedEvent>, context: EventContext): Response {
         if (supportChannelService.isSupportChannel(req.event.item.channel)
             && supportChannelService.isSupportUser(req.event.user)) {
             unansweredMessageService.deleteMessage(req.event.item.ts)

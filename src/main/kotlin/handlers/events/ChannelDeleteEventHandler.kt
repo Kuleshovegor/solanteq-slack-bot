@@ -12,11 +12,7 @@ import service.SupportChannelService
 class ChannelDeleteEventHandler(di: DI) : BoltEventHandler<ChannelDeletedEvent> {
     private val supportChannelService: SupportChannelService by di.instance()
 
-    override fun apply(req: EventsApiPayload<ChannelDeletedEvent>?, context: EventContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: EventsApiPayload<ChannelDeletedEvent>, context: EventContext): Response {
         if (supportChannelService.isSupportChannel(req.event.channel)) {
             supportChannelService.deleteSupportChannel(req.event.channel)
         }

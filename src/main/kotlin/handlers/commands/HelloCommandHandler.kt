@@ -14,11 +14,7 @@ class HelloCommandHandler(di: DI) : SlashCommandHandler {
         const val HELLO_TEXT = "hello :wave:"
     }
 
-    override fun apply(req: SlashCommandRequest?, context: SlashCommandContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
-
+    override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         return DirectMessageHandler.sendMessageInDirect(HELLO_TEXT, req.payload.userId, context, token)
     }
 }
