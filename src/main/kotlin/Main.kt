@@ -51,7 +51,6 @@ fun main() {
         bindSingleton { MessageService(di) }
         bindSingleton { UserService(di) }
         bindSingleton { SupportChannelService(di) }
-        bindSingleton { SlackBlockService(di) }
         bindSingleton { UserSettingsService(di) }
         bindSingleton { AppHomeService(di) }
         bindSingleton { ModalService(di) }
@@ -69,7 +68,6 @@ fun main() {
     }
 
     app.command("/hello", HelloCommandHandler(di))
-    app.command("/menu", MenuHandler(di))
     app.command("/digest", DigestCommandHandler(di))
     app.command("/addsupportchannel", AddSupportChannel(di))
     app.command("/deletesupportchannel", DeleteSupportChannel(di))
