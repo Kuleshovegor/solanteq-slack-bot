@@ -7,6 +7,7 @@ data class NewTask(
     val ownerEmail: String?,
     val projectName: String?,
     val priority: String?,
+    val type: String?,
     val summary: String?,
     val description: String?,
     val assigneeEmail: String?
@@ -16,7 +17,8 @@ data class NewTask(
         return """
             New Task in YouTrack!
             Title: ${summary ?: ""}
-            Priority: ${priority ?: ""}
+            Priority: $priority
+            Type: $type
             Assignee: ${assigneeEmail ?: ""}
             Summary: ${
             (description?.substring(

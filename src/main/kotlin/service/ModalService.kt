@@ -10,6 +10,7 @@ import com.slack.api.model.view.Views.*
 import models.ScheduleTime
 import models.SupportChannel
 import models.TaskPriority
+import models.TaskType
 import org.kodein.di.DI
 import org.kodein.di.instance
 
@@ -360,6 +361,22 @@ class ModalService(di: DI) {
                                                 option { op -> op.text(plainText(it.name)).value(it.name) }
                                             }
                                         ).actionId("selectYouTrackPriority")
+                                    }
+                                )
+                        }, input { r ->
+                            r.blockId("selectYouTrackTypesBlock")
+                                .label(plainText("YouTrack task types"))
+                                .element(
+                                    multiStaticSelect { s ->
+                                        s.options(
+                                            TaskType.values().map {
+                                                option { op -> op.text(plainText(it.name)).value(it.name) }
+                                            }
+                                        ).initialOptions(
+                                            userSettings.notifyType.map {
+                                                option { op -> op.text(plainText(it.name)).value(it.name) }
+                                            }
+                                        ).actionId("selectYouTrackTypes")
                                     }
                                 )
                         }, input { r ->

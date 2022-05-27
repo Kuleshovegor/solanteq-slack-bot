@@ -2,6 +2,9 @@ package service
 
 import com.slack.api.methods.MethodsClient
 import com.slack.api.model.User
+import models.NewTask
+import models.TaskPriority
+import models.TaskType
 import org.kodein.di.DI
 import org.kodein.di.instance
 import org.slf4j.LoggerFactory
@@ -33,6 +36,18 @@ class UserService(di: DI) {
         return userSettings.isYouTrackMuted || userSettings.mutedYouTrackProjects.contains(project)
     }
 
+    fun isYouTrackUserMuted(userId: String, newTask: NewTask): Boolean {
+        val userSettings = userSettingsService.getUserSettingsById(userId)
+        return userSettings.isYouTrackMuted || userSettings.mutedYouTrackProjects.contains(newTask.projectName) ||
+                !userSettings.notifyPriority.contains(
+                    TaskPriority.valueOf(newTask.priority!!)
+                ) ||
+                !userSettings.notifyType.contains(
+                    TaskType.valueOf(newTask.type!!)
+                )
+
+    }
+
     fun existsByName(name: String): Boolean {
         return slackClient.usersList { r ->
             r.token(token)
@@ -61,9 +76,9 @@ class UserService(di: DI) {
 
     fun getUserIdByEmail(email: String): String? {
         return slackClient.usersLookupByEmail { r ->
-                r.email(email)
-                    .token(token)
-            }?.user?.id
+            r.email(email)
+                .token(token)
+        }?.user?.id
     }
 
     fun getUserEmail(userId: String): String {

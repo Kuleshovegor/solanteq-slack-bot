@@ -37,7 +37,7 @@ class NewTaskHandler(di: DI) : WebEndpointHandler {
 
         try {
             val userId = userService.getUserIdByEmail(newTask.ownerEmail) ?: return Response.ok()
-            if (!userService.isYouTrackUserMuted(userId, newTask.projectName!!)) {
+            if (!userService.isYouTrackUserMuted(userId, newTask)) {
                 messageService.sendMessage(userId, newTask.toString())
             }
         } catch (e: Exception) {
@@ -49,7 +49,7 @@ class NewTaskHandler(di: DI) : WebEndpointHandler {
         if (newTask.assigneeEmail != null && newTask.assigneeEmail != newTask.ownerEmail) {
             try {
                 val assigneeUserId = userService.getUserIdByEmail(newTask.assigneeEmail) ?: return Response.ok()
-                if (!userService.isYouTrackUserMuted(assigneeUserId, newTask.projectName)) {
+                if (!userService.isYouTrackUserMuted(assigneeUserId, newTask)) {
                     messageService.sendMessage(assigneeUserId, newTask.toString())
                 }
             } catch (e: Exception) {

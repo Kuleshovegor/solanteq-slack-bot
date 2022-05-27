@@ -1,4 +1,5 @@
 import models.TaskPriority
+import models.TaskType
 import models.UserSettings
 import java.util.*
 
@@ -32,5 +33,6 @@ val DEFAULT_USER_SETTINGS = UserSettings(
         TaskPriority.Major,
         TaskPriority.Critical,
         TaskPriority.ShowStopper
-    )
+    ),
+    notifyType = TaskType.values().toSet()
 )

@@ -9,7 +9,7 @@ class UserSettingsService(di: DI) {
     private val userSettingsRepository: UserSettingsRepository by di.instance()
 
     fun setUserSettings(userSettings: UserSettings) {
-        userSettingsRepository.changeSettings(userSettings)
+        userSettingsRepository.save(userSettings)
     }
 
     fun setMuteYouTrack(userId: String, isYouTrackMuted: Boolean) {
