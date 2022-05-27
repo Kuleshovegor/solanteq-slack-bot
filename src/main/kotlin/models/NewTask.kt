@@ -14,11 +14,11 @@ data class NewTask(
 
     override fun toString(): String {
         return """
-            Новая задача в YouTrack!
-            Заголовок: ${summary ?: ""}
-            Приоритет: ${priority ?: ""}
-            Исполнитель: ${assigneeEmail ?: ""}
-            Описание: ${
+            New Task in YouTrack!
+            Title: ${summary ?: ""}
+            Priority: ${priority ?: ""}
+            Assignee: ${assigneeEmail ?: ""}
+            Summary: ${
             (description?.substring(
                 0..min(
                     description.length - 1,

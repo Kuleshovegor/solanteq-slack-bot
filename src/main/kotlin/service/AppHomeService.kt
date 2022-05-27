@@ -90,7 +90,7 @@ class AppHomeService(di: DI) {
                     },
                     section { s: SectionBlockBuilder ->
                         s.text(markdownText { mt ->
-                            mt.text("Настройки администрации")
+                            mt.text("Admin settings")
                         })
                     },
                     actions { ac ->
@@ -100,7 +100,7 @@ class AppHomeService(di: DI) {
                     },
                     section { s: SectionBlockBuilder ->
                         s.text(markdownText { mt ->
-                            mt.text("Элементы пользователя")
+                            mt.text("User elements")
                         })
                     },
                     actions { ac ->

@@ -12,7 +12,7 @@ import repository.YouTrackCommentRepository
 class DigestService(di: DI) {
     private val supportChannelRepository: SupportChannelRepository by di.instance()
     private val unansweredMessageRepository: UnansweredMessageRepository by di.instance()
-    private val youTrackCommentRepository: YouTrackCommentRepository by di.instance()
+    private val youTrackCommentService: YouTrackCommentService by di.instance()
     private val userSettingsService: UserSettingsService by di.instance()
     private val userService: UserService by di.instance()
     private val slackClient: MethodsClient by di.instance("slackClient")
@@ -34,26 +34,31 @@ class DigestService(di: DI) {
     fun sendUserDigest(userId: String): ChatPostMessageResponse {
         val userChannels = supportChannelRepository.getSupportChannelsByUsedId(userId)
         val digest = StringBuilder()
-        if (userChannels.isEmpty()) {
+        val notAnswered = StringBuilder()
+
+        userChannels.forEach { channel ->
+            val messages = unansweredMessageRepository.getMessagesByChannelId(channel.id)
+
+            if (messages.isNotEmpty()) {
+                val links = messages.joinToString(System.lineSeparator()) { it.link }
+
+                notAnswered.append("Channel ${channel.name}:").append(System.lineSeparator())
+                notAnswered.append(links).append(System.lineSeparator())
+            }
+        }
+
+        if (notAnswered.isEmpty()) {
             digest.append("У вас нет неотвеченных сообщений в чатах поддержки.")
         } else {
             digest.append("У вас неотвеченные сообщения в чатах поддержки:")
         }
         digest.append(System.lineSeparator()).append(System.lineSeparator())
-        userChannels.forEach { channel ->
-            val messages = unansweredMessageRepository.getMessagesByChannelId(channel.id)
-            if (messages.isNotEmpty()) {
-                val links = messages.joinToString(System.lineSeparator()) { it.link }
-
-                digest.append("В канале ${channel.name}:").append(System.lineSeparator())
-                digest.append(links).append(System.lineSeparator())
-            }
-        }
+        digest.append(notAnswered)
 
         val user = userService.getUserInfoById(userId)
         val youTrackComments =
             if (user.profile.email != null) {
-                youTrackCommentRepository.getByEmail(user.profile.email.lowercase())
+                youTrackCommentService.getUnansweredCommentsByEmail(user.profile.email.lowercase())
             } else {
                 listOf()
             }

@@ -25,7 +25,7 @@ class ModalService(di: DI) {
                     viewTitle { vt ->
                         vt
                             .type("plain_text")
-                            .text("Add New Channel")
+                            .text("Add Support Channel")
                     }
                 )
                 .close(viewClose { vc ->
@@ -36,7 +36,7 @@ class ModalService(di: DI) {
                 .blocks(asBlocks(
                     input { inp ->
                         inp.label(
-                            plainText("Выберите канал")
+                            plainText("Select channel")
                         )
                             .element(channelsSelect { cs ->
                                 cs.actionId("selectChannel")
@@ -46,7 +46,7 @@ class ModalService(di: DI) {
                     input { inp ->
                         inp
                             .label(
-                                plainText("Выберите пользователей")
+                                plainText("Select users")
                             )
                             .element(multiUsersSelect { cs ->
                                 cs.actionId("selectUsers")
@@ -69,7 +69,7 @@ class ModalService(di: DI) {
                     viewTitle { vt ->
                         vt
                             .type("plain_text")
-                            .text("Add Time Digest")
+                            .text("Add Digest Time")
                     }
                 )
                 .close(viewClose { vc ->
@@ -80,7 +80,7 @@ class ModalService(di: DI) {
                 .blocks(asBlocks(
                     input { inp ->
                         inp.label(
-                            plainText("Выберите день недели")
+                            plainText("Select day of week")
                         )
                             .element(staticSelect { cs ->
                                 cs.actionId("selectDay")
@@ -98,7 +98,7 @@ class ModalService(di: DI) {
                     input { inp ->
                         inp
                             .label(
-                                plainText("Выберите время")
+                                plainText("Select time")
                             )
                             .element(timePicker { tp ->
                                 tp.actionId("selectTime")
@@ -122,7 +122,7 @@ class ModalService(di: DI) {
                         viewTitle { vt ->
                             vt
                                 .type("plain_text")
-                                .text("Delete Channel")
+                                .text("Delete Support Channel")
                         }
                     )
                     .close(viewClose { vc ->
@@ -133,7 +133,7 @@ class ModalService(di: DI) {
                     .blocks(asBlocks(
                         input { inp ->
                             inp.label(
-                                plainText("Выберите каналы")
+                                plainText("Select channel")
                             )
                                 .element(staticSelect { ss ->
                                     ss.actionId("selectChannel")
@@ -180,7 +180,7 @@ class ModalService(di: DI) {
                     .blocks(asBlocks(
                         input { inp ->
                             inp.label(
-                                plainText("Выберите отметки")
+                                plainText("Select timestamp")
                             )
                                 .element(staticSelect { ss ->
                                     ss.actionId("selectTimeDigest")
@@ -271,8 +271,8 @@ class ModalService(di: DI) {
                         section { c ->
                             c.text(plainText(channels.joinToString(System.lineSeparator()) {
                                 """
-                Название: ${it.name}
-                Пользователи поддержки: ${
+                Channel name: ${it.name}
+                Support users: ${
                                     it.supportUserIds
                                         .joinToString(" ") { userId -> userService.getName(userId) }
                                 }
@@ -348,7 +348,7 @@ class ModalService(di: DI) {
                         },
                         input { r ->
                             r.blockId("selectYouTrackPriorityBlock")
-                                .label(plainText("YouTrack priorities"))
+                                .label(plainText("YouTrack task priorities"))
                                 .element(
                                     multiStaticSelect { s ->
                                         s.options(
@@ -364,10 +364,10 @@ class ModalService(di: DI) {
                                 )
                         }, input { r ->
                             r.blockId("inputYouTrackProjectBlock")
-                                .label(plainText("muted YouTrack projects"))
+                                .label(plainText("Muted YouTrack projects"))
                                 .element(plainTextInput { pti ->
                                     pti.actionId("inputYouTrackProject")
-                                        .placeholder(plainText("Project1, Project2, ..."))
+                                        .placeholder(plainText("ProjectName1, ProjectName2, ..."))
                                         .initialValue(userSettings.mutedYouTrackProjects.joinToString(", "))
                                 }).optional(true)
                         }

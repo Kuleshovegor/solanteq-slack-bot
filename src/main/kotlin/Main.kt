@@ -1,3 +1,4 @@
+import client.YouTrackClient
 import com.slack.api.bolt.App
 import com.slack.api.bolt.WebEndpoint
 import com.slack.api.bolt.jetty.SlackAppServer
@@ -35,6 +36,9 @@ fun main() {
         }
         bindSingleton("SLACK_BOT_TOKEN") { System.getenv("SLACK_BOT_TOKEN") }
         bindSingleton("TEAM_ID") { System.getenv("TEAM_ID") }
+        bindSingleton("YOUTRACK_URL") { System.getenv("YOUTRACK_URL") }
+        bindSingleton("YOUTRACK_ACCESS_TOKEN") { System.getenv("YOUTRACK_ACCESS_TOKEN") }
+        bindSingleton("YOUTRACK_WORKFLOW_IP") { System.getenv("YOUTRACK_WORKFLOW_IP") }
 
         bindSingleton { UnansweredMessageRepository(instance("database")) }
         bindSingleton { SupportChannelRepository(instance("database")) }
@@ -54,6 +58,7 @@ fun main() {
         bindSingleton { ModalService(di) }
 
         bindSingleton("slackClient") { app.client() }
+        bindSingleton { YouTrackClient(di) }
     }
 
     app.initializer("myInitializer", MyInitializer(di))
