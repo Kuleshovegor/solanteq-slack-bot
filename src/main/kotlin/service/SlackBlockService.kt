@@ -46,12 +46,12 @@ class SlackBlockService(di: DI) {
 
     fun getAddNewChannel(): List<LayoutBlock> {
         return listOf(
-            InputBlock("selectNewChannelBlock", PlainTextObject("Выберете новый канал", false),
+            InputBlock("selectNewChannelBlock", PlainTextObject("Choose a new channel", false),
                 BlockElements.channelsSelect { r ->
                     r.actionId("selectNewChannel")
                 }, false, PlainTextObject("menuAddNewChannel", false), false
             ),
-            InputBlock("selectUsersBlock", PlainTextObject("Выберете пользователей", false),
+            InputBlock("selectUsersBlock", PlainTextObject("Choose a users", false),
                 BlockElements.multiUsersSelect { r ->
                     r.actionId("selectUsers")
                 }, false, PlainTextObject("menuAddNewChannel", false), false

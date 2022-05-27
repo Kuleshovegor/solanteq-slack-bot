@@ -42,13 +42,13 @@ class AddTimeNotificationHandler(di: DI, private val everyWeekTaskService: Every
 
     override fun apply(req: SlashCommandRequest, context: SlashCommandContext): Response {
         if (!userService.isAdmin(req.payload.userId)) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("You must be admin to add a notification time.")
         }
 
-        val (dayOfWeek, time) = getData(req.payload.text) ?: return context.ack("неверный запрос")
+        val (dayOfWeek, time) = getData(req.payload.text) ?: return context.ack("Invalid request.")
 
         everyWeekTaskService.addAndSaveNewTime(ScheduleTime(req.payload.teamId, dayOfWeek, time.first, time.second))
 
-        return context.ack("время добавлено")
+        return context.ack("The time added.")
     }
 }

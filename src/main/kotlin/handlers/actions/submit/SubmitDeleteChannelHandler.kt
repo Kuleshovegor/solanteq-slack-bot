@@ -16,7 +16,7 @@ class SubmitDeleteChannelHandler(di: DI) : ViewSubmissionHandler {
         val channelId = req.payload.view.state.values["selectChannelBlock"]!!["selectChannel"]?.selectedOption?.value
 
         if (channelId == null) {
-            errors["selectChannelBlock"] = "Канал не выбран."
+            errors["selectChannelBlock"] = "Channel is not chosen."
         }
 
         return if (errors.isNotEmpty()) {

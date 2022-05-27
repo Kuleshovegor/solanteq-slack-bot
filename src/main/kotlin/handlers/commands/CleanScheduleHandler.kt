@@ -18,11 +18,11 @@ class CleanScheduleHandler(di: DI, private val everyWeekTaskService: EveryWeekTa
         }
 
         if (!userService.isAdmin(req.payload.userId)) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("You must be admin to clean notification schedule.")
         }
 
         everyWeekTaskService.clean()
 
-        return context.ack("расписание удалено")
+        return context.ack("The schedule cleaned.")
     }
 }

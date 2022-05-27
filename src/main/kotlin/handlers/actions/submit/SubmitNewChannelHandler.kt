@@ -22,9 +22,9 @@ class SubmitNewChannelHandler(di: DI) : ViewSubmissionHandler {
         var channelName = ""
 
         if (channelId == null) {
-            errors["selectChannelBlock"] = "Канал не выбран."
+            errors["selectChannelBlock"] = "Channel is not chosen."
         } else if (supportChannelService.isSupportChannel(channelId)) {
-            errors["selectChannelBlock"] = "Канал уже добавлен."
+            errors["selectChannelBlock"] = "Channel has already been added."
         } else {
             channelName = context.client().conversationsInfo { r ->
                 r
@@ -36,11 +36,11 @@ class SubmitNewChannelHandler(di: DI) : ViewSubmissionHandler {
         val userIds = req.payload.view.state.values["selectUsersBlock"]!!["selectUsers"]?.selectedUsers
 
         if (userIds == null || userIds.isEmpty()) {
-            errors["selectUsersBlock"] = "Пользователи не выбраны."
+            errors["selectUsersBlock"] = "Users is not chosen."
         } else {
             val botUsers = userIds.map { userService.getUserInfoById(it) }.filter { it.isBot || it.isWorkflowBot }
             if (botUsers.isNotEmpty()) {
-                errors["selectUsersBlock"] = "Пользователи ${botUsers.joinToString(", ") { it.name }}  - боты."
+                errors["selectUsersBlock"] = "Users ${botUsers.joinToString(", ") { it.name }}  - is bots."
             }
         }
 

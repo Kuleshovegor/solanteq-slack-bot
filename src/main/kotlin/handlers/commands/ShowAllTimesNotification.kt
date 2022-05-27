@@ -19,10 +19,10 @@ class ShowAllTimesNotification(di: DI, private val everyWeekTaskService: EveryWe
         }
 
         if (!userService.isAdmin(req.payload.userId)) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("You must be admin to see schedule digests.")
         }
 
-        val timesNotificationInfo = "Расписание:" + System.lineSeparator() +
+        val timesNotificationInfo = "Schedule:" + System.lineSeparator() +
             everyWeekTaskService.getAllTimes(req.payload.teamId).joinToString(System.lineSeparator()) {
                 "${DAYS_OF_WEEK_TO_STRING[it.dayOfWeek]} ${it.hours}:${if (it.minutes < 10) "0" else ""}${it.minutes}"
             }

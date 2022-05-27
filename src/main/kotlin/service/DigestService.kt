@@ -48,9 +48,9 @@ class DigestService(di: DI) {
         }
 
         if (notAnswered.isEmpty()) {
-            digest.append("У вас нет неотвеченных сообщений в чатах поддержки.")
+            digest.append("You do not have unanswered messages in support chats.")
         } else {
-            digest.append("У вас неотвеченные сообщения в чатах поддержки:")
+            digest.append("You have unanswered messages in support chats:")
         }
         digest.append(System.lineSeparator()).append(System.lineSeparator())
         digest.append(notAnswered)
@@ -63,9 +63,9 @@ class DigestService(di: DI) {
                 listOf()
             }
         if (youTrackComments.isEmpty()) {
-            digest.append("У вас нет неотвеченных сообщений в чатах YouTrack.")
+            digest.append("You do not have unanswered messages in YouTrack chats.")
         } else {
-            digest.append("У вас неотвеченные сообщения в чатах YouTrack:")
+            digest.append("You have unanswered messages in YouTrack chats:")
                 .append(System.lineSeparator())
                 .append(System.lineSeparator())
 

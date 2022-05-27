@@ -5,8 +5,8 @@ import com.slack.api.bolt.response.Response
 
 class DirectMessageHandler {
     companion object {
-        private const val DEFAULT_ERROR_RESPONSE = "Произошла ошибка :pensive:"
-        private const val DEFAULT_OK_RESPONSE = "Вам отправлено личное сообщение"
+        private const val DEFAULT_ERROR_RESPONSE = "Error has occurred :pensive:"
+        private const val DEFAULT_OK_RESPONSE = "A private message has been sent to you."
 
         fun sendMessageInDirect(
             text: String,

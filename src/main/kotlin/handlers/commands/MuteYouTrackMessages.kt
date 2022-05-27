@@ -15,6 +15,6 @@ class MuteYouTrackMessages(di: DI): SlashCommandHandler {
         val newMute = !userSettingsService.getUserSettingsById(req.payload.userId).isYouTrackMuted
         userSettingsService.setMuteYouTrack(req.payload.userId, newMute)
 
-        return context.ack("Сообщения из YouTrack ${if (newMute) "отключены" else "включены"}.")
+        return context.ack("Notification from YouTrack ${if (newMute) "mute" else "unmute"}.")
     }
 }

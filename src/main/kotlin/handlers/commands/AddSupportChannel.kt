@@ -61,29 +61,29 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
         val usrResp = context.client().usersInfo { r -> r.token(token).user(req.payload.userId) }
         if (!usrResp.isOk) {
             context.logger.error(usrResp.error)
-            return context.ack("что-то пошло не так")
+            return context.ack("Could not get information about the user who requested the addition of a support chat.")
         }
 
         if (usrResp.user.isBot) {
-            return context.ack("no")
+            return context.ack("You are bot. You can not a add support chat.")
         }
 
         if (!usrResp.user.isAdmin) {
-            return context.ack("Очень жаль, вы не админ")
+            return context.ack("You must be admin to add a support chat.")
         }
 
-        val text = req.payload.text ?: return context.ack("некорректая комманда")
+        val text = req.payload.text ?: return context.ack("Invalid command.")
         val scanner = Scanner(text.byteInputStream(Charset.forName("UTF-8")))
         val channelTag = scanner.next()
-        val conversation = getConversation(channelTag, context) ?: return context.ack("некорректый тег канала")
+        val conversation = getConversation(channelTag, context) ?: return context.ack("Invalid channel tag.")
         if (supportChannelService.isSupportChannel(conversation.id)) {
-            return context.ack("канал уже добавлен")
+            return context.ack("The channel has been already added.")
         }
         val users = mutableListOf<User>()
 
         while (scanner.hasNext()) {
             val userTag = scanner.next()
-            users.add(getUser(userTag, context) ?: return context.ack("некорректый тег юзера"))
+            users.add(getUser(userTag, context) ?: return context.ack("Invalid user tag."))
         }
 
         supportChannelService.addSupportChannel(
@@ -95,6 +95,6 @@ class AddSupportChannel(di: DI) : SlashCommandHandler {
             )
         )
 
-        return context.ack("чат поддержки добавлен в бота")
+        return context.ack("Support chat added to the bot.")
     }
 }

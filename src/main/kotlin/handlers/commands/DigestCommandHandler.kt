@@ -20,9 +20,9 @@ class DigestCommandHandler(di: DI) : SlashCommandHandler {
 
         if (!response.isOk) {
             context.logger.error(response.error)
-            return context.ack("что-то пошло не так")
+            return context.ack("Some error has occurred. The digest was not sent.")
         }
 
-        return context.ack("дайжест отправлен")
+        return context.ack("The digest was sent.")
     }
 }

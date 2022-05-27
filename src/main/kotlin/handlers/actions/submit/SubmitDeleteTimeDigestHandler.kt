@@ -17,7 +17,7 @@ class SubmitDeleteTimeDigestHandler(di: DI, private val everyWeekTaskService: Ev
         val schStr = req.payload.view.state.values["selectTimeDigestBlock"]!!["selectTimeDigest"]?.selectedOption?.value
         lateinit var time: ScheduleTime
         if (schStr == null) {
-            errors["selectTimeDigestBlock"] = "Время не выбрано."
+            errors["selectTimeDigestBlock"] = "Time is not chosen."
         } else {
             val list = schStr.split(" ").map { it.toInt() }
             time = ScheduleTime(teamId, list[0], list[1], list[2])

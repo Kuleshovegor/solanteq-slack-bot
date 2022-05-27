@@ -125,7 +125,7 @@ class AppHomeService(di: DI) {
                     },
                     section { s: SectionBlockBuilder ->
                         s.text(markdownText { mt ->
-                            mt.text("Элементы пользователя")
+                            mt.text("User elements")
                         })
                     },
                     actions { ac ->

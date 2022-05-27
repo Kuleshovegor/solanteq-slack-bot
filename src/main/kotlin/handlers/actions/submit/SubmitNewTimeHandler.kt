@@ -17,14 +17,14 @@ class SubmitNewTimeHandler(di: DI, private val everyWeekTaskService: EveryWeekTa
         val day = req.payload.view.state.values["selectDayBlock"]!!["selectDay"]?.selectedOption?.value
 
         if (day == null) {
-            errors["selectDayBlock"] = "День не выбран."
+            errors["selectDayBlock"] = "Day is not chosen."
         }
 
         val time = req.payload.view.state.values["selectTimeBlock"]!!["selectTime"]?.selectedTime
         var pairTime = 0 to 0
 
         if (time== null) {
-            errors["selectTimeBlock"] = "Время не выбрано."
+            errors["selectTimeBlock"] = "Time is not chosen."
         } else {
             pairTime = time.split(":")[0].toInt() to time.split(":")[1].toInt()
         }
@@ -32,8 +32,8 @@ class SubmitNewTimeHandler(di: DI, private val everyWeekTaskService: EveryWeekTa
         val scheduleTime = ScheduleTime(teamId, day!!.toInt(), pairTime.first, pairTime.second)
 
         if (everyWeekTaskService.contains(scheduleTime)) {
-            errors["selectTimeBlock"] = "Дата занята."
-            errors["selectDayBlock"] = "Дата занята."
+            errors["selectTimeBlock"] = "This date is not free."
+            errors["selectDayBlock"] = "This date is not free."
         }
 
         return if (errors.isNotEmpty()) {

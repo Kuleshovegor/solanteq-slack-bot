@@ -19,15 +19,15 @@ class ShowAllChannels(di: DI) : SlashCommandHandler {
         }
 
         if (!userService.isAdmin(req.payload.userId)) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("You must be admin to see a list of support chat.")
         }
 
-        val channelsInfo = "Каналы:" + System.lineSeparator() +
+        val channelsInfo = "Channels:" + System.lineSeparator() +
                 supportChannelService.getAllChannels(req.payload.teamId)
                     .joinToString(System.lineSeparator()) {
                     """
-                Название: ${it.name}
-                Пользователи поддержки: ${
+                Name: ${it.name}
+                Support users: ${
                         it.supportUserIds
                             .joinToString(" ") { userId -> userService.getName(userId) }
                     }

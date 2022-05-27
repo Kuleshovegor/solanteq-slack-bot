@@ -5,9 +5,9 @@ data class YouTrackMention(val issueId: String, val projectName: String, val use
 
     override fun toString(): String {
         return """
-            Новое упоминание в YouTrack!
-            Проект: $projectName
-            Ссылка: $link
+            New mention in YouTrack!
+            Project: $projectName
+            Link: $link
         """.trimIndent()
     }
 }

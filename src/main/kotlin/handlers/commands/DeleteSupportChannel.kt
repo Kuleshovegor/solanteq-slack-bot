@@ -21,24 +21,24 @@ class DeleteSupportChannel(di: DI) : SlashCommandHandler {
 
         if (!usrResp.isOk) {
             context.logger.error(usrResp.error)
-            return context.ack("что-то пошло не так")
+            return context.ack("Could not get information about the user who requested the deletion of the support chat.")
         }
 
         if (usrResp.user.isBot) {
-            return context.ack("no")
+            return context.ack("You are a bot. The bot cannot delete support chats.")
         }
 
         if (!usrResp.user.isAdmin) {
-            return context.ack("очень жаль, вы не админ")
+            return context.ack("You must be admin to delete a support chat.")
         }
 
         val tag = req.payload.text.trim()
         val name = tag.slice(1 until tag.length)
 
         if (!supportChannelService.deleteSupportChannelByName(name)) {
-            return context.ack("некорректый тег канала")
+            return context.ack("Invalid channel tag.")
         }
 
-        return context.ack("канал удален из бота")
+        return context.ack("Support chat deleted from bot.")
     }
 }
