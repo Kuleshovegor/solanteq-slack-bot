@@ -1,0 +1,79 @@
+display_information:
+  name: <your bot's name>
+  description: This bot will help you remember the most important thing
+  background_color: "#2a2b30"
+features:
+  app_home:
+    home_tab_enabled: true
+    messages_tab_enabled: false
+    messages_tab_read_only_enabled: false
+  bot_user:
+    display_name: <your bot's name>
+    always_online: false
+  slash_commands:
+    - command: /hello
+      url: <your server>/slack/events
+      description: hello
+      should_escape: false
+    - command: /digest
+      url: <your server>/slack/events
+      description: digest
+      should_escape: false
+    - command: /addsupportchannel
+      url: <your server>/slack/events
+      description: add new support channel
+      usage_hint: "#channel_name @helper1 @helper2 ..."
+      should_escape: false
+    - command: /deletesupportchannel
+      url: <your server>/slack/events
+      description: delete in bot support channel
+      usage_hint: "#channel_name"
+      should_escape: false
+    - command: /addtimenotification
+      url: <your server>/slack/events
+      description: add time
+      usage_hint: понедельник 9:00
+      should_escape: false
+    - command: /showalltimes
+      url: <your server>/slack/events
+      description: show all notification times
+      should_escape: false
+    - command: /showchannels
+      url: <your server>/slack/events
+      description: show all support channels
+      should_escape: false
+    - command: /muteyoutrack
+      url: <your server>/slack/events
+      description: muted/unmuted YouTrack's notifications
+      should_escape: false
+oauth_config:
+  scopes:
+    bot:
+      - app_mentions:read
+      - channels:history
+      - channels:manage
+      - channels:read
+      - chat:write
+      - commands
+      - groups:write
+      - im:read
+      - im:write
+      - mpim:write
+      - reactions:read
+      - users:read
+      - users:read.email
+      - users:write
+settings:
+  event_subscriptions:
+    request_url: <your server>/slack/events
+    bot_events:
+      - app_mention
+      - channel_deleted
+      - message.channels
+      - reaction_added
+  interactivity:
+    is_enabled: true
+    request_url: <your server>/slack/events
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

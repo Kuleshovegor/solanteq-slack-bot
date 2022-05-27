@@ -15,7 +15,6 @@ import handlers.events.MessageDeleteEventHandler
 import handlers.events.MessageEventHandler
 import handlers.events.ReactionAddedEventHandler
 import handlers.youTrack.NewTaskHandler
-import handlers.youTrack.NewYouTrackComment
 import handlers.youTrack.NewYouTrackMentionComment
 import handlers.youTrack.SLAHandler
 import initializers.MyInitializer
@@ -52,7 +51,6 @@ fun main() {
         bindSingleton { MessageService(di) }
         bindSingleton { UserService(di) }
         bindSingleton { SupportChannelService(di) }
-        bindSingleton { SlackBlockService(di) }
         bindSingleton { UserSettingsService(di) }
         bindSingleton { AppHomeService(di) }
         bindSingleton { ModalService(di) }
@@ -70,14 +68,12 @@ fun main() {
     }
 
     app.command("/hello", HelloCommandHandler(di))
-    app.command("/menu", MenuHandler(di))
     app.command("/digest", DigestCommandHandler(di))
     app.command("/addsupportchannel", AddSupportChannel(di))
     app.command("/deletesupportchannel", DeleteSupportChannel(di))
     app.command("/showchannels", ShowAllChannels(di))
     app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
     app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
-    app.command("/cleanschedule", CleanScheduleHandler(di, everyWeekTaskService))
     app.command("/muteyoutrack", MuteYouTrackMessages(di))
 
     app.event(MessageEvent::class.java, MessageEventHandler(di))
@@ -110,7 +106,6 @@ fun main() {
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
     app.endpoint(WebEndpoint.Method.POST, "/youtrack/mention", NewYouTrackMentionComment(di))
-    app.endpoint(WebEndpoint.Method.POST, "/youtrack/comment", NewYouTrackComment(di))
 
     val server = SlackAppServer(app)
 
