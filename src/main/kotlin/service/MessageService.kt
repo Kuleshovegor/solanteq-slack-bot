@@ -1,42 +1,23 @@
 package service
 
-import models.Message
-import repository.SlackMessageRepository
-import repository.UserRepository
+import com.slack.api.methods.MethodsClient
+import org.kodein.di.DI
+import org.kodein.di.instance
 
-class MessageService(
-    private val messageRepository: SlackMessageRepository,
-    private val userRepository: UserRepository
-) {
+class MessageService(di: DI) {
+    private val slackClient: MethodsClient by di.instance("slackClient")
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
 
-
-    fun addMessage(message: Message) {
-        messageRepository.addMessage(message)
-    }
-
-    fun creatUserDigest(userId: String): String {
-        val userChannels = userRepository.getChannelsByUserId(userId) ?: error("user not found")
-        val result = StringBuilder()
-        result.append("У вас не отвеченные сообщения в чатах поодержки.")
-            .append(System.lineSeparator())
-            .append(System.lineSeparator())
-        userChannels.channels.forEach { channel ->
-            val messages = messageRepository.getMessagesByChannelId(channel.id)
-            val links = messages.joinToString(System.lineSeparator()) { it.link }
-
-            result.append("В канале ${channel.name}:").append(System.lineSeparator())
-            result.append(links).append(System.lineSeparator())
+    fun sendMessage(userId: String, text: String) {
+        slackClient.conversationsOpen { r ->
+            r.token(token)
+                .users(listOf(userId))
         }
 
-        return result.toString()
+        slackClient.chatPostMessage { r ->
+            r.token(token)
+                .channel(userId)
+                .text(text)
+        }
     }
-
-    fun getAllMessages(): List<Message> {
-        return messageRepository.getMessages()
-    }
-
-    fun deleteMessage(ts: String) {
-        messageRepository.deleteMessage(ts)
-    }
-
 }

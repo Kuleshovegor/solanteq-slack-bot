@@ -4,44 +4,45 @@ import com.slack.api.app_backend.events.payload.EventsApiPayload
 import com.slack.api.bolt.context.builtin.EventContext
 import com.slack.api.bolt.handler.BoltEventHandler
 import com.slack.api.bolt.response.Response
-import com.slack.api.model.Conversation
 import com.slack.api.model.event.MessageEvent
-import dsl.BotConfig
-import service.MessageService
+import models.UnansweredMessage
+import org.kodein.di.DI
+import org.kodein.di.instance
+import service.SupportChannelService
+import service.UnansweredMessageService
 
 
-class MessageEventHandler(
-    private val botConfig: BotConfig,
-    private val messageService: MessageService,
-    private val channelsNameToConversation: Map<String, Conversation>,
-    private val userNameToId: Map<String, String>
-) : BoltEventHandler<MessageEvent> {
-    override fun apply(req: EventsApiPayload<MessageEvent>?, context: EventContext?): Response {
-        if (req == null || context == null) {
-            return Response.error(500)
-        }
+class MessageEventHandler(di: DI) : BoltEventHandler<MessageEvent> {
+    private val token: String by di.instance("SLACK_BOT_TOKEN")
+    private val unansweredMessageService: UnansweredMessageService by di.instance()
+    private val supportChannelService: SupportChannelService by di.instance()
 
-        if (channelsNameToConversation.values.map { it.id }.contains(req.event.channel)) {
-            val channelDescription =
-                botConfig.channels.values.find { channelsNameToConversation[it.name]!!.id == req.event.channel }
+    override fun apply(req: EventsApiPayload<MessageEvent>, context: EventContext): Response {
+        if (supportChannelService.isSupportChannel(req.event.channel)) {
             if (req.event.threadTs != null) {
-                if (userNameToId.containsValue(req.event.user) &&
-                    channelDescription!!.users.any { userNameToId[it.name] == req.event.user }
-                ) {
-                    messageService.deleteMessage(req.event.threadTs)
+                if (supportChannelService.isSupportUser(req.event.user, req.event.channel)) {
+                    unansweredMessageService.deleteMessage(req.event.threadTs)
                 }
-                return context.ack()
+            } else {
+                if (!supportChannelService.isSupportUser(req.event.user, req.event.channel)) {
+                    val linkResp = context.client().chatGetPermalink { r ->
+                        r.token(token)
+                            .channel(req.event.channel)
+                            .messageTs(req.event.ts)
+
+                    }
+
+                    unansweredMessageService.addMessage(
+                        UnansweredMessage(
+                            req.event.ts,
+                            linkResp.permalink,
+                            req.event.channel
+                        )
+                    )
+                }
             }
-
-            val linkResp = context.client().chatGetPermalink { r ->
-                r.token(botConfig.slackBotToken)
-                    .channel(req.event.channel)
-                    .messageTs(req.event.ts)
-
-            }
-
-            messageService.addMessage(models.Message(req.event.ts, linkResp.permalink, req.event.channel))
         }
+
         return context.ack()
     }
 }

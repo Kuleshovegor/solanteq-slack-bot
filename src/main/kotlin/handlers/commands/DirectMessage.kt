@@ -1,28 +1,23 @@
 package handlers.commands
 
 import com.slack.api.bolt.context.builtin.SlashCommandContext
-import com.slack.api.bolt.request.builtin.SlashCommandRequest
 import com.slack.api.bolt.response.Response
-import dsl.BotConfig
 
 class DirectMessageHandler {
     companion object {
-        private const val DEFAULT_ERROR_RESPONSE = "Произошла ошибка :pensive:"
-        private const val DEFAULT_OK_RESPONSE = "Вам отправлено личное сообщение"
+        private const val DEFAULT_ERROR_RESPONSE = "Error has occurred :pensive:"
+        private const val DEFAULT_OK_RESPONSE = "A private message has been sent to you."
 
-        fun sendResponseInDirect(
+        fun sendMessageInDirect(
             text: String,
-            req: SlashCommandRequest?,
-            context: SlashCommandContext?,
-            botConfig: BotConfig
+            userId: String,
+            context: SlashCommandContext,
+            token: String
         ): Response {
-            if (req == null || context == null) {
-                return Response.error(500)
-            }
 
             val conversationsOpenResponse = context.client().conversationsOpen { r ->
-                r.token(botConfig.slackBotToken)
-                    .users(listOf(context.requestUserId))
+                r.token(token)
+                    .users(listOf(userId))
             }
 
             if (!conversationsOpenResponse.isOk && !conversationsOpenResponse.isAlreadyOpen) {
@@ -33,8 +28,8 @@ class DirectMessageHandler {
 
             val chatPostMessageResponse = context.client()
                 .chatPostMessage { r ->
-                    r.token(botConfig.slackBotToken)
-                        .channel(context.requestUserId)
+                    r.token(token)
+                        .channel(userId)
                         .text(text)
                 }
 

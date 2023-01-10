@@ -1,92 +1,113 @@
-import handlers.commands.DigestCommandHandler
-import handlers.commands.HelloCommandHandler
+import client.YouTrackClient
 import com.slack.api.bolt.App
+import com.slack.api.bolt.WebEndpoint
 import com.slack.api.bolt.jetty.SlackAppServer
-import com.slack.api.model.Conversation
+import com.slack.api.model.event.ChannelDeletedEvent
+import com.slack.api.model.event.MessageDeletedEvent
 import com.slack.api.model.event.MessageEvent
-import dsl.UserDescription
+import com.slack.api.model.event.ReactionAddedEvent
+import handlers.actions.*
+import handlers.actions.home.*
+import handlers.actions.submit.*
+import handlers.commands.*
+import handlers.events.ChannelDeleteEventHandler
+import handlers.events.MessageDeleteEventHandler
 import handlers.events.MessageEventHandler
-import models.UserChannels
+import handlers.events.ReactionAddedEventHandler
+import handlers.youTrack.NewTaskHandler
+import handlers.youTrack.NewYouTrackMentionComment
+import handlers.youTrack.SLAHandler
+import initializers.MyInitializer
 import org.kodein.di.DI
 import org.kodein.di.bindSingleton
 import org.kodein.di.instance
 import org.litote.kmongo.KMongo
-import repository.SlackMessageRepository
-import repository.UserRepository
-import service.MessageService
+import repository.*
+import service.*
 
 
 fun main() {
-
     val app = App()
 
     val di = DI {
         bindSingleton("database") {
-            KMongo.createClient().getDatabase("<database name>")
+            KMongo.createClient(System.getenv("MONGODB_CONNSTRING")).getDatabase("solanteq_slack_bot")
         }
-        bindSingleton { UserRepository(instance("database")) }
-        bindSingleton { SlackMessageRepository(instance("database")) }
-        bindSingleton { MessageService(instance(), instance()) }
+        bindSingleton("SLACK_BOT_TOKEN") { System.getenv("SLACK_BOT_TOKEN") }
+        bindSingleton("TEAM_ID") { System.getenv("TEAM_ID") }
+        bindSingleton("YOUTRACK_URL") { System.getenv("YOUTRACK_URL") }
+        bindSingleton("YOUTRACK_ACCESS_TOKEN") { System.getenv("YOUTRACK_ACCESS_TOKEN") }
+        bindSingleton("YOUTRACK_WORKFLOW_IP") { System.getenv("YOUTRACK_WORKFLOW_IP") }
+
+        bindSingleton { UnansweredMessageRepository(instance("database")) }
+        bindSingleton { SupportChannelRepository(instance("database")) }
+        bindSingleton { YouTrackCommentRepository(instance("database")) }
+        bindSingleton { UserSettingsRepository(instance("database")) }
+        bindSingleton { ScheduleTimeRepository(instance("database")) }
+
+        bindSingleton { YouTrackCommentService(di) }
+        bindSingleton { UnansweredMessageService(di) }
+        bindSingleton { DigestService(di) }
+        bindSingleton { MessageService(di) }
+        bindSingleton { UserService(di) }
+        bindSingleton { SupportChannelService(di) }
+        bindSingleton { UserSettingsService(di) }
+        bindSingleton { AppHomeService(di) }
+        bindSingleton { ModalService(di) }
+
+        bindSingleton("slackClient") { app.client() }
+        bindSingleton { YouTrackClient(di) }
     }
 
-    val userDescriptionToChannels = mutableMapOf<UserDescription, MutableList<String>>()
+    app.initializer("myInitializer", MyInitializer(di))
 
-    BOT_CONFIG.channels.forEach { (_, channelDescription) ->
-        channelDescription.users.forEach { userDescription ->
-            userDescriptionToChannels.putIfAbsent(userDescription, mutableListOf())
-            userDescriptionToChannels[userDescription]?.add(channelDescription.name)
-        }
+    val everyWeekTaskService = EveryWeekTaskService(di) {
+        val digestService: DigestService by di.instance()
+
+        digestService.sendAllDigest(System.getenv("TEAM_ID"))
     }
 
-    val userNameToId = mutableMapOf<String, String>()
-    val channelsNameToConversation = mutableMapOf<String, Conversation>()
+    app.command("/hello", HelloCommandHandler(di))
+    app.command("/digest", DigestCommandHandler(di))
+    app.command("/addsupportchannel", AddSupportChannel(di))
+    app.command("/deletesupportchannel", DeleteSupportChannel(di))
+    app.command("/showchannels", ShowAllChannels(di))
+    app.command("/addtimenotification", AddTimeNotificationHandler(di, everyWeekTaskService))
+    app.command("/showalltimes", ShowAllTimesNotification(di, everyWeekTaskService))
+    app.command("/muteyoutrack", MuteYouTrackMessages(di))
 
-    val messageService: MessageService by di.instance()
+    app.event(MessageEvent::class.java, MessageEventHandler(di))
+    app.event(MessageDeletedEvent::class.java, MessageDeleteEventHandler(di))
+    app.event(ChannelDeletedEvent::class.java, ChannelDeleteEventHandler(di))
+    app.event(ReactionAddedEvent::class.java, ReactionAddedEventHandler(di))
 
-    app.initializer("nameInitializer") { initApp ->
-        val userRepository: UserRepository by di.instance()
-        val usersListResponse =
-            initApp.client().usersList { r -> r.token(BOT_CONFIG.slackBotToken).teamId(BOT_CONFIG.teamId) }
+    app.blockAction("homeDeleteTimeDigest", HomeDeleteTimeDigestHandler(di, everyWeekTaskService))
+    app.blockAction("homeDigest", HomeDigestActionHandler(di))
+    app.blockAction("homeAddNewChannel", HomeAddNewChannelHandler(di))
+    app.blockAction("homeDeleteChannel", HomeDeleteChannelHandler(di))
+    app.blockAction("selectChannel", DefaultActionHandler())
+    app.blockAction("selectTime", DefaultActionHandler())
+    app.blockAction("selectTimeDigest", DefaultActionHandler())
+    app.blockAction("selectDay", DefaultActionHandler())
+    app.blockAction("selectUsers", DefaultActionHandler())
+    app.blockAction("homeAddTimeDigest", HomeAddTimeDigestHandler(di))
+    app.blockAction("homeShowTimeDigest", HomeShowTimeDigestHandler(di, everyWeekTaskService))
+    app.blockAction("homeShowChannelsDigest", HomeShowChannelsHandler(di))
+    app.blockAction("homeUserSettings", HomeUserSettingsHandler(di))
 
-        check(usersListResponse.isOk) { "Init error: bad response: ${usersListResponse.error}" }
+    app.viewSubmission("addNewChannelCallbackId", SubmitNewChannelHandler(di))
+    app.viewSubmission("deleteChannelCallbackId", SubmitDeleteChannelHandler(di))
+    app.viewSubmission("addNewTimeCallbackId", SubmitNewTimeHandler(di, everyWeekTaskService))
+    app.viewSubmission("deleteTimeDigestCallbackId", SubmitDeleteTimeDigestHandler(di, everyWeekTaskService))
+    app.viewSubmission("showChannelsCallbackId") { _, ctx -> ctx.ack() }
+    app.viewSubmission("showTimeDigestCallbackId") { _, ctx -> ctx.ack() }
+    app.viewSubmission("userSettingsCallbackId", SubmitUserSettingsHandler(di))
 
-        val usersList = usersListResponse.members
-        val userNames = userDescriptionToChannels.keys.map { it.name }.toSet()
-
-        usersList.forEach {
-            if (userNames.contains(it.name)) {
-                userNameToId[it.name] = it.id
-            }
-        }
-
-        val channelListResponse = initApp.client().conversationsList { r ->
-            r.token(BOT_CONFIG.slackBotToken)
-                .teamId(BOT_CONFIG.teamId)
-        }
-
-        check(channelListResponse.isOk) { "Init error: bad response: ${channelListResponse.error}" }
-
-        val channelList = channelListResponse.channels
-        val channelNames = BOT_CONFIG.channels.keys
-
-        channelList.forEach {
-            if (channelNames.contains(it.name)) {
-                channelsNameToConversation[it.name] = it
-            }
-        }
-
-        userDescriptionToChannels.entries.forEach { (key, value) ->
-            val channelsId = value.map { channelsNameToConversation[it]!! }
-            userRepository.addUser(UserChannels(userNameToId[key.name]!!, channelsId))
-        }
-    }
-
-    app.command("/hello", HelloCommandHandler(BOT_CONFIG))
-
-    app.command("/digest", DigestCommandHandler(BOT_CONFIG, messageService))
-
-    app.event(MessageEvent::class.java, MessageEventHandler(BOT_CONFIG, messageService, channelsNameToConversation, userNameToId))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/sla", SLAHandler(di))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/newtask", NewTaskHandler(di))
+    app.endpoint(WebEndpoint.Method.POST, "/youtrack/mention", NewYouTrackMentionComment(di))
 
     val server = SlackAppServer(app)
+
     server.start()
 }
